@@ -45,6 +45,7 @@ namespace NSAP_ODK.Views
         private int _checkCount = 0;
         private EntityContext _entityContext = new EntityContext();
 
+
         public OrphanItemsManagerWindow()
         {
             InitializeComponent();
@@ -119,65 +120,17 @@ namespace NSAP_ODK.Views
                 buttonReplace.IsEnabled = true;
             }
         }
-        private void OnWindowLoaded(object sender, RoutedEventArgs e)
+        private void Setuprid1()
         {
             buttonDelete.IsEnabled = false;
             checkMultipleSp.Visibility = Visibility.Collapsed;
             labelStatus.Content = "";
-            RefreshItemsSource();
-            switch (NSAPEntity)
-            {
-                case NSAPEntity.SpeciesName:
-                    labelTitle.Content = "Manage orphaned species names";
-                    dataGrid.Columns.Add(new DataGridTextColumn { Header = "Species name", Binding = new Binding("Name"), IsReadOnly = true });
-                    dataGrid.Columns.Add(new DataGridTextColumn { Header = "Taxa", Binding = new Binding("Taxa"), IsReadOnly = true });
-                    checkMultipleSp.Visibility = Visibility.Visible;
-                    buttonFix.Visibility = Visibility.Visible;
-                    checkCheckAll.Visibility = Visibility.Visible;
-                    break;
-                case NSAPEntity.FishSpecies:
-                    labelTitle.Content = "Manage orphaned fish species names";
-                    dataGrid.Columns.Add(new DataGridTextColumn { Header = "Species name", Binding = new Binding("Name"), IsReadOnly = true });
-                    checkMultipleSp.Visibility = Visibility.Visible;
-                    buttonFix.Visibility = Visibility.Visible;
-
-                    break;
-                case NSAPEntity.NonFishSpecies:
-                    labelTitle.Content = "Manage orphaned non-fish species names";
-                    dataGrid.Columns.Add(new DataGridTextColumn { Header = "Species name", Binding = new Binding("LandingSiteName"), IsReadOnly = true });
-                    break;
-                case NSAPEntity.LandingSite:
-                    buttonDelete.IsEnabled = true;
-                    labelTitle.Content = "Manage orphaned landing sites";
-                    dataGrid.Columns.Add(new DataGridTextColumn { Header = "Landing site name", Binding = new Binding("LandingSiteName"), IsReadOnly = true });
-
-                    break;
-                case NSAPEntity.Enumerator:
-                    buttonDelete.IsEnabled = true;
-                    labelTitle.Content = "Manage orphaned enumerators";
-
-                    dataGrid.Columns.Add(new DataGridTextColumn { Header = "Enumerator", Binding = new Binding("Name"), IsReadOnly = true });
-
-
-                    break;
-                case NSAPEntity.FishingGear:
-                    buttonDelete.IsEnabled = true;
-                    labelTitle.Content = "Manage orphaned fishing gears";
-                    dataGrid.Columns.Add(new DataGridTextColumn { Header = "Gear name", Binding = new Binding("Name"), IsReadOnly = true });
-                    break;
-
-                case NSAPEntity.FishingVessel:
-                    labelTitle.Content = "Manage orphaned fishing vessels";
-                    dataGrid.Columns.Add(new DataGridTextColumn { Header = "Vessel name", Binding = new Binding("Name"), IsReadOnly = true });
-                    break;
-            }
 
 
             dataGrid.Columns.Add(new DataGridCheckBoxColumn { Header = "Replace", Binding = new Binding("ForReplacement"), });
             dataGrid.Columns.Add(new DataGridTextColumn { Header = "Region", Binding = new Binding("Region.ShortName"), IsReadOnly = true });
             dataGrid.Columns.Add(new DataGridTextColumn { Header = "FMA", Binding = new Binding("FMA"), IsReadOnly = true });
             dataGrid.Columns.Add(new DataGridTextColumn { Header = "Fishing ground", Binding = new Binding("FishingGround"), IsReadOnly = true });
-
 
             switch (NSAPEntity)
             {
@@ -209,6 +162,140 @@ namespace NSAP_ODK.Views
 
                     break;
             }
+        }
+        private void SetupGrid2(bool from_FormLoad=true)
+        {
+            switch (NSAPEntity)
+            {
+
+                case NSAPEntity.LandingSite:
+                    buttonDelete.IsEnabled = true;
+                    labelTitle.Content = "Manage orphaned landing sites";
+                    dataGrid.Columns.Add(new DataGridTextColumn { Header = "Landing site name", Binding = new Binding("LandingSiteName"), IsReadOnly = true });
+
+
+                    break;
+                case NSAPEntity.Enumerator:
+                    buttonDelete.IsEnabled = true;
+                    labelTitle.Content = "Manage orphaned enumerators";
+
+                    dataGrid.Columns.Add(new DataGridTextColumn { Header = "Enumerator", Binding = new Binding("Name"), IsReadOnly = true });
+
+
+                    break;
+            }
+            if (!from_FormLoad)
+            {
+                Setuprid1();
+            }
+        }
+        private void OnWindowLoaded(object sender, RoutedEventArgs e)
+        {
+            //buttonDelete.IsEnabled = false;
+            //checkMultipleSp.Visibility = Visibility.Collapsed;
+            //labelStatus.Content = "";
+
+            switch (NSAPEntity)
+            {
+
+                case NSAPEntity.LandingSite:
+                case NSAPEntity.Enumerator:
+                    panelButtonsSamplingType.Visibility = Visibility.Visible;
+                    rbRegular.IsChecked = true;
+                    rbCarrier.Checked += OnRadioButtonChecked;
+                    rbRegular.Checked += OnRadioButtonChecked;
+                    break;
+            }
+
+            RefreshItemsSource();
+            switch (NSAPEntity)
+            {
+                case NSAPEntity.SpeciesName:
+                    labelTitle.Content = "Manage orphaned species names";
+                    dataGrid.Columns.Add(new DataGridTextColumn { Header = "Species name", Binding = new Binding("Name"), IsReadOnly = true });
+                    dataGrid.Columns.Add(new DataGridTextColumn { Header = "Taxa", Binding = new Binding("Taxa"), IsReadOnly = true });
+                    checkMultipleSp.Visibility = Visibility.Visible;
+                    buttonFix.Visibility = Visibility.Visible;
+                    checkCheckAll.Visibility = Visibility.Visible;
+                    break;
+                case NSAPEntity.FishSpecies:
+                    labelTitle.Content = "Manage orphaned fish species names";
+                    dataGrid.Columns.Add(new DataGridTextColumn { Header = "Species name", Binding = new Binding("Name"), IsReadOnly = true });
+                    checkMultipleSp.Visibility = Visibility.Visible;
+                    buttonFix.Visibility = Visibility.Visible;
+
+                    break;
+                case NSAPEntity.NonFishSpecies:
+                    labelTitle.Content = "Manage orphaned non-fish species names";
+                    dataGrid.Columns.Add(new DataGridTextColumn { Header = "Species name", Binding = new Binding("LandingSiteName"), IsReadOnly = true });
+                    break;
+                case NSAPEntity.LandingSite:
+                    SetupGrid2();
+                    //buttonDelete.IsEnabled = true;
+                    //labelTitle.Content = "Manage orphaned landing sites";
+                    //dataGrid.Columns.Add(new DataGridTextColumn { Header = "Landing site name", Binding = new Binding("LandingSiteName"), IsReadOnly = true });
+
+
+                    break;
+                case NSAPEntity.Enumerator:
+                    SetupGrid2();
+                    //buttonDelete.IsEnabled = true;
+                    //labelTitle.Content = "Manage orphaned enumerators";
+
+                    //dataGrid.Columns.Add(new DataGridTextColumn { Header = "Enumerator", Binding = new Binding("Name"), IsReadOnly = true });
+
+
+                    break;
+                case NSAPEntity.FishingGear:
+                    buttonDelete.IsEnabled = true;
+                    labelTitle.Content = "Manage orphaned fishing gears";
+                    dataGrid.Columns.Add(new DataGridTextColumn { Header = "Gear name", Binding = new Binding("Name"), IsReadOnly = true });
+                    break;
+
+                case NSAPEntity.FishingVessel:
+                    labelTitle.Content = "Manage orphaned fishing vessels";
+                    dataGrid.Columns.Add(new DataGridTextColumn { Header = "Vessel name", Binding = new Binding("Name"), IsReadOnly = true });
+                    break;
+            }
+
+            Setuprid1();
+
+            //dataGrid.Columns.Add(new DataGridCheckBoxColumn { Header = "Replace", Binding = new Binding("ForReplacement"), });
+            //dataGrid.Columns.Add(new DataGridTextColumn { Header = "Region", Binding = new Binding("Region.ShortName"), IsReadOnly = true });
+            //dataGrid.Columns.Add(new DataGridTextColumn { Header = "FMA", Binding = new Binding("FMA"), IsReadOnly = true });
+            //dataGrid.Columns.Add(new DataGridTextColumn { Header = "Fishing ground", Binding = new Binding("FishingGround"), IsReadOnly = true });
+
+
+            //switch (NSAPEntity)
+            //{
+            //    case NSAPEntity.FishingVessel:
+            //        dataGrid.Columns.Add(new DataGridTextColumn { Header = "Landing site", Binding = new Binding("LandingSiteName"), IsReadOnly = true });
+            //        dataGrid.Columns.Add(new DataGridTextColumn { Header = "Sector", Binding = new Binding("Sector"), IsReadOnly = true });
+            //        dataGrid.Columns.Add(new DataGridTextColumn { Header = "# of landings", Binding = new Binding("NumberOfUnload"), IsReadOnly = true });
+            //        break;
+
+            //    case NSAPEntity.Enumerator:
+            //        dataGrid.Columns.Add(new DataGridTextColumn { Header = "Landing site", Binding = new Binding("LandingSiteName"), IsReadOnly = true });
+            //        dataGrid.Columns.Add(new DataGridTextColumn { Header = "# of landings", Binding = new Binding("NumberOfLandings"), IsReadOnly = true });
+            //        dataGrid.Columns.Add(new DataGridTextColumn { Header = "# of vessel countings", Binding = new Binding("NumberOfVesselCountings"), IsReadOnly = true });
+            //        break;
+
+            //    case NSAPEntity.LandingSite:
+            //        dataGrid.Columns.Add(new DataGridTextColumn { Header = "Enumerator", Binding = new Binding("EnumeratorName"), IsReadOnly = true });
+            //        dataGrid.Columns.Add(new DataGridTextColumn { Header = "# of landings", Binding = new Binding("NumberOfVesselLandings"), IsReadOnly = true });
+            //        dataGrid.Columns.Add(new DataGridCheckBoxColumn { Header = "Can be deleted", Binding = new Binding("CanBeDeletedNow"), IsReadOnly = true });
+            //        break;
+            //    case NSAPEntity.SpeciesName:
+            //        ((DataGridTextColumn)dataGrid.Columns.FirstOrDefault(t => t.Header.ToString() == "Region")).Binding = new Binding("Region");
+            //        dataGrid.Columns.Add(new DataGridTextColumn { Header = "# of landings", Binding = new Binding("NumberOfLandings"), IsReadOnly = true });
+            //        break;
+            //    case NSAPEntity.FishingGear:
+            //        dataGrid.Columns.Add(new DataGridTextColumn { Header = "Enumerators", Binding = new Binding("EnumeratorNameList"), IsReadOnly = true });
+            //        dataGrid.Columns.Add(new DataGridTextColumn { Header = "# of gear unload", Binding = new Binding("NumberOfUnload"), IsReadOnly = true });
+            //        dataGrid.Columns.Add(new DataGridTextColumn { Header = "# of vessel unload", Binding = new Binding("NumberOfVesselUnload"), IsReadOnly = true });
+
+            //        break;
+            //}
 
 
             Title = labelTitle.Content.ToString();
@@ -863,18 +950,18 @@ namespace NSAP_ODK.Views
                         }
                         break;
                     case NSAPEntity.LandingSite:
-                        if (((OrphanedLandingSite)item).ForReplacement)
+                        if (((IOrphanedItem)item).ForReplacement)
                         {
                             if (!proceed)
                             {
                                 proceed = true;
-                                if (replacementWindow != null)
+                                if (replacementWindow != null && item.GetType() == typeof(OrphanedLandingSite))
                                 {
                                     replacementWindow.LandingSiteSampling = ((OrphanedLandingSite)item).LandingSiteSamplings[0];
                                 }
 
-                                _entityContext.Region = ((OrphanedLandingSite)item).Region;
-                                _entityContext.FMA = ((OrphanedLandingSite)item).FMA;
+                                _entityContext.Region = ((IOrphanedItem)item).Region;
+                                _entityContext.FMA = ((IOrphanedItem)item).FMA;
                                 _entityContext.FishingGround = ((OrphanedLandingSite)item).FishingGround;
                                 _entityContext.NSAPEntity = NSAPEntity.NSAPRegionFMAFishingGround;
                             }
@@ -907,25 +994,32 @@ namespace NSAP_ODK.Views
                         }
                         break;
                     case NSAPEntity.Enumerator:
-                        if (((OrphanedEnumerator)item).ForReplacement)
+                        if (((IOrphanedItem)item).ForReplacement)
                         {
                             if (!proceed)
                             {
                                 proceed = true;
-                                if (replacementWindow != null && ((OrphanedEnumerator)item).SampledLandings.Count > 0)
+                                if (replacementWindow != null && item.GetType()==typeof(OrphanedEnumerator) && ((OrphanedEnumerator)item).SampledLandings.Count > 0)
                                 {
                                     replacementWindow.NSAPRegion = ((OrphanedEnumerator)item).Region;
+
+                                    _countForReplacement += ((OrphanedEnumerator)item).SampledLandings.Count;
+                                    if (((OrphanedEnumerator)item).LandingSiteSamplings != null)
+                                    {
+                                        _countForReplacement += ((OrphanedEnumerator)item).LandingSiteSamplings.Count;
+                                    }
+                                    _entityContext.FishingGround = ((OrphanedEnumerator)item).FishingGround;
                                 }
                             }
-                            _countForReplacement += ((OrphanedEnumerator)item).SampledLandings.Count;
-                            if (((OrphanedEnumerator)item).LandingSiteSamplings != null)
-                            {
-                                _countForReplacement += ((OrphanedEnumerator)item).LandingSiteSamplings.Count;
-                            }
+                            //_countForReplacement += ((OrphanedEnumerator)item).SampledLandings.Count;
+                            //if (((OrphanedEnumerator)item).LandingSiteSamplings != null)
+                            //{
+                            //    _countForReplacement += ((OrphanedEnumerator)item).LandingSiteSamplings.Count;
+                            //}
 
-                            _entityContext.Region = ((OrphanedEnumerator)item).Region;
-                            _entityContext.FMA = ((OrphanedEnumerator)item).FMA;
-                            _entityContext.FishingGround = ((OrphanedEnumerator)item).FishingGround;
+                            _entityContext.Region = ((IOrphanedItem)item).Region;
+                            _entityContext.FMA = ((IOrphanedItem)item).FMA;
+                            //_entityContext.FishingGround = ((OrphanedEnumerator)item).FishingGround;
                             _entityContext.NSAPEntity = NSAPEntity.NSAPRegion;
 
                         }
@@ -1727,6 +1821,69 @@ namespace NSAP_ODK.Views
                     break;
             }
             dataGrid.Items.Refresh();
+        }
+
+
+        private void GetOrphanedEnumeratorsForCarrierSampling()
+        {
+            dataGrid.Columns.Clear();
+            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Enumerator", Binding = new Binding("Enumerator"), IsReadOnly = true });
+            dataGrid.Columns.Add(new DataGridCheckBoxColumn { Header = "Replace", Binding = new Binding("ForReplacement"), });
+            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Region", Binding = new Binding("Region"), IsReadOnly = true });
+            dataGrid.Columns.Add(new DataGridTextColumn { Header = "FMA", Binding = new Binding("FMA"), IsReadOnly = true });
+            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Landing site", Binding = new Binding("LandingSite"), IsReadOnly = true });
+
+            //dataGrid.Columns.Add(new DataGridTextColumn { Header = "# of landings", Binding = new Binding("NumberOfSampledLandings"), IsReadOnly = true });
+
+            var orphanedList = NSAPEnumeratorRepository.GetOrphanedEnumeratorFromCarrierLandings();
+            dataGrid.DataContext = orphanedList;
+        }
+        private void GetOrphanedLandingSitesForCarrierSampling()
+        {
+            dataGrid.Columns.Clear();
+
+            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Landing site", Binding = new Binding("LandingSiteName"), IsReadOnly = true });
+            dataGrid.Columns.Add(new DataGridCheckBoxColumn { Header = "Replace", Binding = new Binding("Replace"), });
+            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Region", Binding = new Binding("Region"), IsReadOnly = true });
+            dataGrid.Columns.Add(new DataGridTextColumn { Header = "FMA", Binding = new Binding("FMA"), IsReadOnly = true });
+            dataGrid.Columns.Add(new DataGridTextColumn { Header = "Enumerator", Binding = new Binding("EnumeratorName"), IsReadOnly = true });
+            dataGrid.Columns.Add(new DataGridTextColumn { Header = "# of landings", Binding = new Binding("NumberOfSampledLandings"), IsReadOnly = true });
+            var orphanedList = LandingSiteRepository.GetOrphanedLandingSitesFromCarrierLandings();
+            dataGrid.DataContext = orphanedList;
+        }
+        private void OnRadioButtonChecked(object sender, RoutedEventArgs e)
+        {
+            if (dataGrid.DataContext != null)
+            {
+                switch (((RadioButton)sender).Name)
+                {
+                    case "rbRegular":
+                        dataGrid.Columns.Clear();
+                        RefreshItemsSource();
+                        SetupGrid2(from_FormLoad:false);
+                        //switch (NSAPEntity)
+                        //{
+                        //    case NSAPEntity.LandingSite:
+                        //        dataGrid.DataContext = NSAPEntities.SummaryItemViewModel.OrphanedLandingSites.OrderBy(t => t.LandingSiteName).ToList();
+                        //        break;
+                        //    case NSAPEntity.Enumerator:
+                        //        break;
+                        //}
+                        break;
+
+                    case "rbCarrier":
+                        switch (NSAPEntity)
+                        {
+                            case NSAPEntity.LandingSite:
+                                GetOrphanedLandingSitesForCarrierSampling();
+                                break;
+                            case NSAPEntity.Enumerator:
+                                GetOrphanedEnumeratorsForCarrierSampling();
+                                break;
+                        }
+                        break;
+                }
+            }
         }
     }
 }

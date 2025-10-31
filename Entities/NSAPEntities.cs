@@ -190,7 +190,13 @@ namespace NSAP_ODK.Entities
             VesselUnloadRepository.ClearTable(otherConnectionString);
             TotalWtSpRepository.ClearTable(otherConnectionString);
             GearUnloadRepository.ClearTable(otherConnectionString);
-            LandingSiteSamplingSubmissionRepository.ClearTable(otherConnectionString);
+
+            CarrierBoatLanding_FishingGroundRepository.ClearTable();
+            CarrierLandingRepository.ClearTable();
+            CatcherBoatOperationRepository.ClearTable();
+
+            LandingSiteSamplingSubmissionRepository.ClearTable(otherConnectionString);            
+            
             if (LandingSiteSamplingRepository.ClearTable(otherConnectionString))
             {
                 success = true;

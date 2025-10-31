@@ -297,6 +297,7 @@ namespace NSAP_ODK.Entities.Database
                             try
                             {
                                 lpks.LastFishingGridsPK = (int)cmd.ExecuteScalar();
+                                lpks.LastCatcherBoatFishingGroundGridPK = lpks.LastFishingGridsPK;
                             }
                             catch { }
                         }
@@ -456,6 +457,7 @@ namespace NSAP_ODK.Entities.Database
                             try
                             {
                                 lpks.LastFishingGridsPK = (int)cmd.ExecuteScalar();
+                                lpks.LastCatcherBoatFishingGroundGridPK = lpks.LastFishingGridsPK;
                             }
                             catch { }
                         }

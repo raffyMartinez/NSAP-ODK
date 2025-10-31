@@ -8,6 +8,7 @@ using System.Data;
 using System.Data.OleDb;
 using MySql.Data.MySqlClient;
 using NSAP_ODK.NSAPMysql;
+using NSAP_ODK.Entities.Database;
 
 
 namespace NSAP_ODK.Entities
@@ -21,6 +22,73 @@ namespace NSAP_ODK.Entities
             NSAPEnumerators = getNSAPEnumerators();
         }
 
+        public static List<OrphanedEnumeratorFromCarrierLandings> GetOrphanedEnumeratorFromCarrierLandings()
+        {
+            List<OrphanedEnumeratorFromCarrierLandings> list = new List<OrphanedEnumeratorFromCarrierLandings>();
+            if (Global.Settings.UsemySQL)
+            {
+
+            }
+            else
+            {
+                using (var con = new OleDbConnection(Global.ConnectionString))
+                {
+                    using (var cmd = con.CreateCommand())
+                    {
+                        cmd.Parameters.AddWithValue("@sampling_type", "cbl");
+                        cmd.CommandText = @"SELECT 
+                                                nsapRegion.Code AS region_code, 
+                                                fma.FMAID as fma_id, 
+                                                landingSite.LandingSiteName, 
+                                                dbo_LC_FG_sample_day_1.EnumeratorText
+                                            FROM 
+                                                fma 
+                                            INNER JOIN (
+                                                landingSite RIGHT JOIN 
+                                                (nsapRegion INNER JOIN 
+                                                (dbo_LC_FG_sample_day INNER JOIN 
+                                                dbo_LC_FG_sample_day_1 ON 
+                                                dbo_LC_FG_sample_day.unload_day_id = dbo_LC_FG_sample_day_1.unload_day_id) ON 
+                                                nsapRegion.Code = dbo_LC_FG_sample_day.region_id) ON 
+                                                landingSite.LandingSiteID = dbo_LC_FG_sample_day.land_ctr_id) ON 
+                                                fma.FMAID = dbo_LC_FG_sample_day.fma
+                                            WHERE 
+                                                dbo_LC_FG_sample_day.type_of_sampling=@sampling_type AND 
+                                                dbo_LC_FG_sample_day.land_ctr_id Is Null
+                                            GROUP BY 
+                                                nsapRegion.Code, 
+                                                fma.FMAID, 
+                                                landingSite.LandingSiteName, 
+                                                dbo_LC_FG_sample_day_1.EnumeratorText
+                                            HAVING
+                                                dbo_LC_FG_sample_day_1.EnumeratorText Is Not Null";
+                        try
+                        {
+                            con.Open();
+                            var dr = cmd.ExecuteReader();
+                            while(dr.Read())
+                            {
+                                
+                                OrphanedEnumeratorFromCarrierLandings oecl = new OrphanedEnumeratorFromCarrierLandings
+                                {
+                                    ForReplacement=false,
+                                    Region = NSAPEntities.NSAPRegionViewModel.GetNSAPRegion( (string)dr["region_code"]),
+                                    FMA = NSAPEntities.FMAViewModel.GetFMA( (int)dr["fma_id"]),
+                                    Enumerator =(string)dr["EnumeratorText"],
+                                    LandingSite = dr["LandingSiteName"]==DBNull.Value?string.Empty:(string)dr["LandingSiteName"]
+                                };
+                                list.Add(oecl);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+            return list;
+        }
         public static List<NSAPRegionEnumerator> GetNSAPRegionEnumerators()
         {
             List<NSAPRegionEnumerator> nsapRegionEns = new List<NSAPRegionEnumerator>();

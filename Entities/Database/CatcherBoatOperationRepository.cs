@@ -17,6 +17,35 @@ namespace NSAP_ODK.Entities.Database
             CatcherBoatOperations = getCatcherBoatOperations();
         }
 
+        public static bool ClearTable()
+        {
+            bool success = false;
+
+            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            {
+                conn.Open();
+                var sql = "Delete * from dbo_catcher_boat_operations";
+
+                using (OleDbCommand update = new OleDbCommand(sql, conn))
+                {
+                    try
+                    {
+                        update.ExecuteNonQuery();
+                        success = true;
+                    }
+                    catch (OleDbException)
+                    {
+                        success = false;
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                        success = false;
+                    }
+                }
+            }
+            return success;
+        }
         public CatcherBoatOperationRepository(CarrierLanding parent)
         {
             CatcherBoatOperations = getCatcherBoatOperations(parent);

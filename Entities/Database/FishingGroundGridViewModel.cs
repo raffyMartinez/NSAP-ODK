@@ -10,6 +10,8 @@ namespace NSAP_ODK.Entities.Database
     public class FishingGroundGridViewModel : IDisposable
     {
         public bool _editSuccess;
+
+        private bool _newFGGFromCatcherOperations;
         public ObservableCollection<FishingGroundGrid> FishingGroundGridCollection { get; set; }
         private FishingGroundGridRepository FishingGroundGrids { get; set; }
 
@@ -45,7 +47,7 @@ namespace NSAP_ODK.Entities.Database
                     majorGrid = v;
                 }
             }
-            if(!proceed)
+            if (!proceed)
             {
                 FormattingErrorMessage = "Grid location is not formatted correctly";
             }
@@ -77,6 +79,11 @@ namespace NSAP_ODK.Entities.Database
 
             }
             // free native resources if there are any.
+        }
+
+        public FishingGroundGridViewModel(CatcherBoatOperation cbo_parent)
+        {
+
         }
         public FishingGroundGridViewModel(VesselUnload parent)
         {
@@ -139,9 +146,10 @@ namespace NSAP_ODK.Entities.Database
 
             Dictionary<string, string> myDict = new Dictionary<string, string>();
             myDict.Add("fg_grid_id", item.PK.ToString());
-            myDict.Add("v_unload_id", item.Parent.PK.ToString());
+            myDict.Add("v_unload_id", item.Parent != null ? item.Parent.PK.ToString() : "");
             myDict.Add("utm_zone", item.UTMZone.ToString());
             myDict.Add("grid25", item.Grid);
+            myDict.Add("CatcherBoatID", item.ParentCBO != null ? item.ParentCBO.RowID.ToString() : "");
 
             _csv.AppendLine(CreateTablesInAccess.CSVFromObjectDataDictionary(myDict, "dbo_fg_grid"));
 
@@ -210,8 +218,9 @@ namespace NSAP_ODK.Entities.Database
             get { return FishingGroundGridCollection.Count; }
         }
 
-        public bool AddRecordToRepo(FishingGroundGrid item)
+        public bool AddRecordToRepo(FishingGroundGrid item, bool fromCatcher = false)
         {
+            _newFGGFromCatcherOperations = fromCatcher;
             if (item == null)
                 throw new ArgumentNullException("Error: The argument is Null");
             FishingGroundGridCollection.Add(item);
@@ -271,9 +280,9 @@ namespace NSAP_ODK.Entities.Database
 
         public bool CheckForDuplicate(FishingGroundGridEdited fgge)
         {
-            foreach(var item in FishingGroundGridCollection)
+            foreach (var item in FishingGroundGridCollection)
             {
-                if(item.Equals(fgge) && item.PK!=fgge.PK)
+                if (item.Equals(fgge) && item.PK != fgge.PK)
                 {
                     return true;
                 }

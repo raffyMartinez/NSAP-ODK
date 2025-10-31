@@ -19,6 +19,72 @@ namespace NSAP_ODK.Entities
         {
             landingSites = getLandingSites();
         }
+
+        public static List<OrphanedLandingSiteFromCarrierLandings> GetOrphanedLandingSitesFromCarrierLandings()
+        {
+            List<OrphanedLandingSiteFromCarrierLandings> thisList = new List<OrphanedLandingSiteFromCarrierLandings>();
+            if (Global.Settings.UsemySQL)
+            {
+            }
+            else
+            {
+                using (var con = new OleDbConnection(Global.ConnectionString))
+                {
+                    using (var cmd = con.CreateCommand())
+                    {
+                        cmd.Parameters.AddWithValue("@sampling_type", "cbl");
+                        cmd.CommandText = @"SELECT DISTINCT 
+                                                nsapRegion.Code as region_code, 
+                                                fma.FMAID as fma_id, 
+                                                dbo_LC_FG_sample_day.land_ctr_text, 
+                                                Count(dbo_LC_FG_sample_day.unload_day_id) AS n, 
+                                                NSAPEnumerator.EnumeratorName
+                                            FROM 
+                                                NSAPEnumerator 
+                                            INNER JOIN 
+                                                ((nsapRegion 
+                                                INNER JOIN (fma 
+                                                INNER JOIN dbo_LC_FG_sample_day ON 
+                                                fma.FMAID = dbo_LC_FG_sample_day.fma) ON 
+                                                nsapRegion.Code = dbo_LC_FG_sample_day.region_id) INNER JOIN 
+                                                dbo_LC_FG_sample_day_1 ON 
+                                                dbo_LC_FG_sample_day.unload_day_id = dbo_LC_FG_sample_day_1.unload_day_id) ON 
+                                                NSAPEnumerator.EnumeratorID = dbo_LC_FG_sample_day_1.EnumeratorID
+                                            WHERE 
+                                                dbo_LC_FG_sample_day.type_of_sampling=@sampling_type AND 
+                                                dbo_LC_FG_sample_day.land_ctr_id Is Null
+                                            GROUP BY 
+                                                nsapRegion.Code, 
+                                                fma.FMAID, 
+                                                dbo_LC_FG_sample_day.land_ctr_text, 
+                                                NSAPEnumerator.EnumeratorName";
+
+                        try
+                        {
+                            con.Open();
+                            var dr = cmd.ExecuteReader();
+                            while (dr.Read())
+                            {
+                                OrphanedLandingSiteFromCarrierLandings ols = new OrphanedLandingSiteFromCarrierLandings
+                                {
+                                    Region = NSAPEntities.NSAPRegionViewModel.GetNSAPRegion(dr["region_code"].ToString()),
+                                    FMA = NSAPEntities.FMAViewModel.GetFMA( (int)dr["fma_id"]),
+                                    EnumeratorName = dr["EnumeratorName"].ToString(),
+                                    LandingSiteName = dr["land_ctr_text"].ToString(),
+                                    NumberOfSampledLandings = (int)dr["n"]
+                                };
+                                thisList.Add(ols);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+            return thisList;
+        }
         private List<LandingSite> getFromMySQL()
         {
             List<LandingSite> thisList = new List<LandingSite>();

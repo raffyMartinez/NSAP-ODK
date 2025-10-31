@@ -29,6 +29,7 @@ namespace NSAP_ODK.Entities.Database
             int fieldSize = 0;
             if (TotalWtSpRepository.CheckForTWSPTable() &&
                 VesselUnloadRepository.CheckForWtValidationTable() &&
+                VesselUnloadRepository.CheckForGearInteractionTables() &&
                 LandingSiteSamplingSubmissionRepository.CheckForLSS_SubmissionIDTable() &&
                 UnmatchedFieldsFromJSONFileRepository.CheckTableExist() &&
                 CarrierLandingRepository.CheckTableExist() &&
@@ -167,7 +168,10 @@ namespace NSAP_ODK.Entities.Database
 
                                                     if (cols.Contains("lss_submisionID") || VesselUnloadRepository.UpdateTableDefinitionEx("lss_submisionID"))
                                                     {
-                                                        proceed = cols.Contains("submission_id") || VesselUnloadRepository.UpdateTableDefinitionEx("submission_id");
+                                                        if (cols.Contains("has_etp_interaction") || VesselUnloadRepository.UpdateTableDefinitionEx("has_etp_interaction"))
+                                                        {
+                                                            proceed = cols.Contains("submission_id") || VesselUnloadRepository.UpdateTableDefinitionEx("submission_id");
+                                                        }
 
                                                     }
                                                 }
@@ -341,7 +345,16 @@ namespace NSAP_ODK.Entities.Database
                             cols = CreateTablesInAccess.GetColumnNames("landingSite");
                             proceed = cols.Contains("TypeOfSampling") || await LandingSiteRepository.AddFieldToTableAsync("TypeOfSampling");
                         }
-
+                        if (proceed)
+                        {
+                            cols = CreateTablesInAccess.GetColumnNames("dbo_fg_grid");
+                            proceed = cols.Contains("CatcherBoatID") || await FishingGroundGridRepository.AddFieldToTable("CatcherBoatID");
+                        }
+                        if (proceed)
+                        {
+                            cols = CreateTablesInAccess.GetColumnNames("dbo_carrier_landing");
+                            proceed = cols.Contains("sample_weight") || await CarrierLandingRepository.AddFieldToTable("sample_weight");
+                        }
                     }
 
 
@@ -357,7 +370,7 @@ namespace NSAP_ODK.Entities.Database
         public static List<DateTime> GetMonthsSampledInLandingSite(LandingSite ls, FishingGround fg, FMA fma, NSAPRegion reg)
         {
             HashSet<DateTime> dateTimes = new HashSet<DateTime>();
-            if(Global.Settings.UsemySQL)
+            if (Global.Settings.UsemySQL)
             {
 
             }
@@ -371,7 +384,7 @@ namespace NSAP_ODK.Entities.Database
                         cmd.Parameters.AddWithValue("@ls_id", ls.LandingSiteID);
                         cmd.Parameters.AddWithValue("@fg_id", fg.Code);
                         cmd.Parameters.AddWithValue("@fma_id", fma.FMAID);
-                        
+
 
                         cmd.CommandText = @"SELECT sdate
                                             FROM dbo_LC_FG_sample_day
@@ -391,7 +404,7 @@ namespace NSAP_ODK.Entities.Database
                                 dateTimes.Add(new DateTime(sDate.Year, sDate.Month, 1));
                             }
                         }
-                        catch(Exception ex)
+                        catch (Exception ex)
                         {
                             Logger.Log(ex);
                         }
@@ -402,7 +415,7 @@ namespace NSAP_ODK.Entities.Database
             return dateTimes.ToList();
         }
 
-        public LandingSiteSampling Create( int lss_id)
+        public LandingSiteSampling Create(int lss_id)
         {
             var landingSiteSamplings = getLandingSiteSamplings(lss_id);
             if (landingSiteSamplings.Count > 0)

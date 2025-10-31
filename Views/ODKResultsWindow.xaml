@@ -33,6 +33,7 @@
                 <MenuItem Header="Upload to database" x:Name="menuUpload" Click="OnMenuClick"/>
                 <MenuItem Header="Save to Excel" x:Name="menuSaveToExcel" Click="OnMenuClick" Visibility="Collapsed"/>
                 <MenuItem Header="Save JSON" x:Name="menuSaveJson" Click="OnMenuClick" Visibility="Visible"/>
+                <MenuItem Header="Save JSON now" x:Name="menuSaveJsonNow" Click="OnMenuClick" Visibility="Visible"/>
                 <Separator/>
                 <MenuItem Header="Unrecognized fishing grounds" x:Name="menuUnrecognizedFG" Click="OnMenuClick" Visibility="Collapsed"/>
                 <MenuItem Header="Clear tables" x:Name="menuClearTables" Click="OnMenuClick" Visibility="Collapsed"/>

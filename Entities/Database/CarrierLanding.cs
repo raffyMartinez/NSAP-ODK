@@ -69,6 +69,8 @@ namespace NSAP_ODK.Entities.Database
 
         public double? WeightOfCatch { get; set; }
 
+        public double? WeightOfSample { get; set; }
+
         public int CountSpeciesComposition { get; set; }
 
         public int RowID { get; set; }

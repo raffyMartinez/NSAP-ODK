@@ -162,11 +162,11 @@ namespace NSAP_ODK.Entities.Database
 
 
 
-                        currentTableName = "dbo_fg_grid";
-                        File.WriteAllText(csv_file, FishingGroundGridViewModel.CSV);
-                        cmd.CommandText = $@"INSERT INTO dbo_fg_grid SELECT * FROM [Text;FMT=Delimited;DATABASE={base_dir};HDR=yes].[temp.csv]";
-                        cmd.ExecuteNonQuery();
-                        AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "done imported csv", CurrentTableName = currentTableName, CurrentTableCount = ++_importCSVCount });
+                        //currentTableName = "dbo_fg_grid";
+                        //File.WriteAllText(csv_file, FishingGroundGridViewModel.CSV);
+                        //cmd.CommandText = $@"INSERT INTO dbo_fg_grid SELECT * FROM [Text;FMT=Delimited;DATABASE={base_dir};HDR=yes].[temp.csv]";
+                        //cmd.ExecuteNonQuery();
+                        //AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "done imported csv", CurrentTableName = currentTableName, CurrentTableCount = ++_importCSVCount });
 
                         currentTableName = "dbo_gear_soak";
                         File.WriteAllText(csv_file, GearSoakViewModel.CSV);
@@ -193,6 +193,13 @@ namespace NSAP_ODK.Entities.Database
                         cmd.CommandText = $@"INSERT INTO dbo_catcher_boat_operations SELECT * FROM [Text;FMT=Delimited;DATABASE={base_dir};HDR=yes].[temp.csv]";
                         cmd.ExecuteNonQuery();
                         AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "done imported csv", CurrentTableName = "dbo_catcher_boat_operations", CurrentTableCount = ++_importCSVCount });
+
+
+                        currentTableName = "dbo_fg_grid";
+                        File.WriteAllText(csv_file, FishingGroundGridViewModel.CSV);
+                        cmd.CommandText = $@"INSERT INTO dbo_fg_grid SELECT * FROM [Text;FMT=Delimited;DATABASE={base_dir};HDR=yes].[temp.csv]";
+                        cmd.ExecuteNonQuery();
+                        AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "done imported csv", CurrentTableName = currentTableName, CurrentTableCount = ++_importCSVCount });
 
                         currentTableName = "dbo_vessel_catch";
                         File.WriteAllText(csv_file, VesselCatchViewModel.CSV);

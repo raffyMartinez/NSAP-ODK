@@ -59,6 +59,11 @@
             <Button Content="Delete" Height="30" Width="120" Margin="10 " x:Name="buttonDelete" Click="OnButtonClick" IsEnabled="True"/>
 
             <CheckBox Content="Multiple species" Margin="10 30 10 0" Checked="OnCheckChanged" Unchecked="OnCheckChanged" x:Name="checkMultipleSp" Visibility="Visible"/>
+            <StackPanel Margin="5 10 5 0" x:Name="panelButtonsSamplingType" Visibility="Collapsed">
+                <Label Content="Type of sampling"/>
+                <RadioButton Content="Regular" x:Name="rbRegular" Margin="0 2" />
+                <RadioButton Content="Carrier landings" x:Name="rbCarrier" Margin="0 2" />
+            </StackPanel>
 
             <CheckBox Content="Check all" Margin="10" x:Name="checkCheckAll" Checked="OnCheckChanged" IsEnabled="False" Unchecked="OnCheckChanged" Visibility="Collapsed"/>
 

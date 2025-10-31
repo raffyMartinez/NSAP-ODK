@@ -1510,7 +1510,13 @@ namespace NSAP_ODK.Entities.Database
         }
 
 
+        public bool HasInteractionWithETPs { get; set; }
 
+        public List<string> ETPsIntercatedWith { get; set; }
+
+        public List<string> TypesOfIntercationWithETPs { get; set; }
+
+        public string OtherInteractionTypeWithETPs { get; set; }
 
         public GearUnload Parent
         {

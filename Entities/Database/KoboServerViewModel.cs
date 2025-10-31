@@ -84,45 +84,56 @@ namespace NSAP_ODK.Entities.Database
                 _koboForms = value;
                 foreach (var kf in _koboForms)
                 {
-                    Koboserver ks = new Koboserver
+                    try
                     {
-                        ServerNumericID = kf.formid,
-                        FormName = kf.title,
-                        ServerID = kf.id_string,
-                        Owner = kf.owner,
-                        eFormVersion = kf.eForm_version,
-                        FormVersion = kf.xlsform_version,
-                        DateCreated = kf.date_created,
-                        DateModified = kf.date_modified,
-                        DateLastSubmission = kf.last_submission_time,
-                        SubmissionCount = kf.num_of_submissions,
-                        DateLastAccessed = DateTime.Now,
-                        UserCount = kf.users.Count,
-                        //SavedInDBCount = NSAPEntities.SummaryItemViewModel.CountByFormID(kf.id_string),
-                        LastUploadedJSON = KoboserverCollection.FirstOrDefault(t => t.ServerNumericID == kf.formid)?.LastUploadedJSON,
-                        LastCreatedJSON = KoboserverCollection.FirstOrDefault(t => t.ServerNumericID == kf.formid)?.LastCreatedJSON,
-                        
 
-                    };
+                        Koboserver ks = new Koboserver
+                        {
+                            ServerNumericID = kf.formid,
+                            FormName = kf.title,
+                            ServerID = kf.id_string,
+                            Owner = kf.owner,
+                            eFormVersion = kf.eForm_version,
+                            FormVersion = kf.xlsform_version,
+                            DateCreated = kf.date_created,
+                            DateModified = kf.date_modified,
+                            DateLastSubmission = kf.last_submission_time,
+                            SubmissionCount = kf.num_of_submissions,
+                            DateLastAccessed = DateTime.Now,
+                            //UserCount = kf.users.Count,
+                            //SavedInDBCount = NSAPEntities.SummaryItemViewModel.CountByFormID(kf.id_string),
+                            LastUploadedJSON = KoboserverCollection.FirstOrDefault(t => t.ServerNumericID == kf.formid)?.LastUploadedJSON,
+                            LastCreatedJSON = KoboserverCollection.FirstOrDefault(t => t.ServerNumericID == kf.formid)?.LastCreatedJSON,
+                        };
+                        if(kf.users!=null)
+                        {
+                            ks.UserCount = kf.users.Count;
+                        }
 
-                    if(ks.IsFishLandingMultiVesselSurveyForm)
-                    {
-                        ks.SavedInDBCount = NSAPEntities.LandingSiteSamplingSubmissionViewModel.CountRecordsByFormID(ks.ServerID);
-                    }
-                    else
-                    {
-                        ks.SavedInDBCount = NSAPEntities.SummaryItemViewModel.CountByFormID(kf.id_string);
-                    }
+                        if (ks.IsFishLandingMultiVesselSurveyForm)
+                        {
+                            ks.SavedInDBCount = NSAPEntities.LandingSiteSamplingSubmissionViewModel.CountRecordsByFormID(ks.ServerID);
+                        }
+                        else
+                        {
+                            ks.SavedInDBCount = NSAPEntities.SummaryItemViewModel.CountByFormID(kf.id_string);
+                        }
 
 
-                    if (GetKoboServer(ks.ServerNumericID) == null)
-                    {
-                        AddRecordToRepo(ks);
+                        if (GetKoboServer(ks.ServerNumericID) == null)
+                        {
+                            AddRecordToRepo(ks);
+                        }
+                        else
+                        {
+                            UpdateRecordInRepo(ks);
+                        }
                     }
-                    else
+                    catch (Exception ex)
                     {
-                        UpdateRecordInRepo(ks);
+
                     }
+
 
                 }
             }
@@ -192,10 +203,10 @@ namespace NSAP_ODK.Entities.Database
                     break;
             }
         }
-        public void ResetJSONFields(bool resetLastUploaded = true, bool isMultiGearform = false, bool isMultiVesselform=false)
+        public void ResetJSONFields(bool resetLastUploaded = true, bool isMultiGearform = false, bool isMultiVesselform = false)
         {
             List<Koboserver> fl_servers;
-            if(isMultiVesselform)
+            if (isMultiVesselform)
             {
                 fl_servers = KoboserverCollection.Where(t => t.IsFishLandingMultiVesselSurveyForm == true).ToList();
             }

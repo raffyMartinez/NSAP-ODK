@@ -39,7 +39,7 @@ namespace NSAP_ODK.Entities.Database
         public static ParentIDs GetParentIDs(int v_unloadID)
         {
             ParentIDs pids = new ParentIDs();
-            if(Global.Settings.UsemySQL)
+            if (Global.Settings.UsemySQL)
             {
 
             }
@@ -66,7 +66,7 @@ namespace NSAP_ODK.Entities.Database
                         {
                             con.Open();
                             var dr = cmd.ExecuteReader();
-                            while(dr.Read())
+                            while (dr.Read())
                             {
                                 pids = new ParentIDs
                                 {
@@ -76,7 +76,7 @@ namespace NSAP_ODK.Entities.Database
                                 };
                             }
                         }
-                        catch(Exception ex)
+                        catch (Exception ex)
                         {
                             Logger.Log(ex);
                         }
@@ -318,11 +318,11 @@ namespace NSAP_ODK.Entities.Database
                                             HAVING
                                                  dbo_vessel_unload_1.is_multigear=True";
 
-                         con.Open();
+                        con.Open();
                         VesselUnload vu = null;
                         try
                         {
-                            
+
                             OleDbDataReader dr = cmd.ExecuteReader();
                             while (dr.Read())
                             {
@@ -345,13 +345,13 @@ namespace NSAP_ODK.Entities.Database
                                     FirstFishingGround = $"{dr["grid_utm_zone"].ToString()} - {dr["grid"].ToString()}",
                                 };
                                 vu.ListUnloadFishingGearsEx = new List<VesselUnload_FishingGear>();
-                                if (dr["grid"]!=DBNull.Value && dr["grid_utm_zone"]!=DBNull.Value)
+                                if (dr["grid"] != DBNull.Value && dr["grid_utm_zone"] != DBNull.Value)
                                 {
                                     UTMZone z = new UTMZone(dr["grid_utm_zone"].ToString());
                                     var gridCell = new Grid25GridCell(z, dr["grid"].ToString());
                                     vu.FirstFishingGroundCoordinate = gridCell.Coordinate;
                                 }
-                                if (dr["setting"]!=DBNull.Value)
+                                if (dr["setting"] != DBNull.Value)
                                 {
                                     vu.GearSettingFirst = (DateTime)dr["setting"];
                                 }
@@ -359,7 +359,7 @@ namespace NSAP_ODK.Entities.Database
                                 {
                                     vu.GearHaulingFirst = (DateTime)dr["hauling"];
                                 }
-                                if (dr["NumberOfFishers"] != DBNull.Value && (int)dr["NumberOfFishers"]>0)
+                                if (dr["NumberOfFishers"] != DBNull.Value && (int)dr["NumberOfFishers"] > 0)
                                 {
                                     vu.NumberOfFishers = (int)dr["NumberOfFishers"];
                                 }
@@ -372,7 +372,7 @@ namespace NSAP_ODK.Entities.Database
                                 {
                                     vu.WeightOfCatch = (double)dr["total_wt_catch"];
                                 }
-                                if (dr["sample_wt_catch"] != DBNull.Value && (double)dr["sample_wt_catch"]>0)
+                                if (dr["sample_wt_catch"] != DBNull.Value && (double)dr["sample_wt_catch"] > 0)
                                 {
                                     vu.WeightOfCatchSample = (double)dr["sample_wt_catch"];
                                 }
@@ -384,7 +384,7 @@ namespace NSAP_ODK.Entities.Database
                                 //{
                                 //    vu.ArrivalAtLandingSite = (DateTime)dr["ArrivalLandingSite"];
                                 //}
-                                if (string.IsNullOrEmpty( dr["boat_text"].ToString()))
+                                if (string.IsNullOrEmpty(dr["boat_text"].ToString()))
                                 {
                                     vu.VesselText = dr["VesselName"].ToString();
                                 }
@@ -457,6 +457,7 @@ namespace NSAP_ODK.Entities.Database
                             break;
                         case "is_multigear":
                         case "include_effort_indicators":
+                        case "has_etp_interaction":
                             sql = $@"ALTER TABLE dbo_vessel_unload_1 ADD COLUMN {colName}  BIT";
                             break;
                         case "ref_no":
@@ -1671,6 +1672,47 @@ namespace NSAP_ODK.Entities.Database
             return tableExists;
 
         }
+
+        public static bool CheckForGearInteractionTables()
+        {
+            int tableCount = 0;
+            using (var conn = new OleDbConnection(Utilities.Global.ConnectionString))
+            {
+                conn.Open();
+                var schema = conn.GetOleDbSchemaTable(OleDbSchemaGuid.Tables, new object[] { null, null, null, "TABLE" });
+                if (schema.Rows
+                    .OfType<DataRow>()
+                    .Any(r => r.ItemArray[2].ToString().ToLower() == "dbo_vessel_unload_etp_interaction"))
+                {
+                    tableCount++;
+                }
+                else
+                {
+                    if (CreateTable("dbo_vessel_unload_etp_interaction"))
+                    {
+                        tableCount++;
+                    }
+                }
+
+
+                if (schema.Rows
+                    .OfType<DataRow>()
+                    .Any(r => r.ItemArray[2].ToString().ToLower() == "dbo_vessel_unload_etp_interaction_type"))
+                {
+                    tableCount++;
+                }
+                else
+                {
+                    if (CreateTable("dbo_vessel_unload_etp_interaction_type"))
+                    {
+                        tableCount++;
+                    }
+                }
+
+
+            }
+            return tableCount == 2;
+        }
         public static bool CheckForWtValidationTable()
         {
             bool tableExists = false;
@@ -1779,6 +1821,29 @@ namespace NSAP_ODK.Entities.Database
                 {
                     switch (tableName)
                     {
+                        case "dbo_vessel_unload_etp_interaction_type":
+                            cmd.CommandText = @"CREATE TABLE dbo_vessel_unload_etp_interaction_type (
+                                             v_unload_id INTEGER, 
+                                             row_id INTEGER,
+                                             etp_interaction  VARCHAR(20),
+                                             other_interaction VARCHAR(150),
+                                             CONSTRAINT PrimaryKey PRIMARY KEY (row_id),        
+                                             CONSTRAINT FK_interaction
+                                                FOREIGN KEY (v_unload_id) REFERENCES
+                                                dbo_vessel_unload (v_unload_id)
+                                             )";
+                            break;
+                        case "dbo_vessel_unload_etp_interaction":
+                            cmd.CommandText = @"CREATE TABLE dbo_vessel_unload_etp_interaction (
+                                             v_unload_id INTEGER, 
+                                             row_id INTEGER,   
+                                             etp_name  VARCHAR(20),
+                                             CONSTRAINT PrimaryKey PRIMARY KEY (row_id),        
+                                             CONSTRAINT FK_etp
+                                                FOREIGN KEY (v_unload_id) REFERENCES
+                                                dbo_vessel_unload (v_unload_id)
+                                             )";
+                            break;
                         case "dbo_vessel_unload_weight_validation":
                             cmd.CommandText = @"CREATE TABLE dbo_vessel_unload_weight_validation (
                                                 v_unload_id INTEGER, 
@@ -2946,6 +3011,82 @@ namespace NSAP_ODK.Entities.Database
             return success;
         }
 
+        public static bool AddETPs(VesselUnload vu)
+        {
+            int etp_list_inserted_count = 0;
+            if (Global.Settings.UsemySQL)
+            {
+
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+                {
+                    conn.Open();
+                    var sql = @"Insert into dbo_vessel_unload_etp_interaction(v_unload_id, etp_name) Values (?,?)";
+                    conn.Open();
+                    foreach (var etp_item in vu.ETPsIntercatedWith)
+                    {
+                        using (OleDbCommand insert = new OleDbCommand(sql, conn))
+                        {
+                            insert.Parameters.Add("@id", OleDbType.Integer).Value = vu.PK;
+                            insert.Parameters.Add("@etp", OleDbType.VarChar).Value = etp_item;
+                            try
+                            {
+                                if (insert.ExecuteNonQuery() > 0)
+                                {
+                                    etp_list_inserted_count++;
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Logger.Log(ex);
+                            }
+                        }
+                    }
+                }
+            }
+            return etp_list_inserted_count == vu.ETPsIntercatedWith.Count;
+        }
+
+        public static bool AddInteractions(VesselUnload vu)
+        {
+            int interaction_inserted_count = 0;
+            if (Global.Settings.UsemySQL)
+            {
+
+            }
+            else
+            {
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+                {
+                    conn.Open();
+                    var sql = @"Insert into dbo_vessel_unload_etp_interaction_type(v_unload_id, etp_interaction,other_interaction) Values (?,?,?)";
+                    conn.Open();
+                    foreach (var interaction_item in vu.TypesOfIntercationWithETPs)
+                    {
+                        using (OleDbCommand insert = new OleDbCommand(sql, conn))
+                        {
+                            insert.Parameters.Add("@id", OleDbType.Integer).Value = vu.PK;
+                            insert.Parameters.Add("@etp", OleDbType.VarChar).Value = interaction_item;
+                            insert.Parameters.Add("@other", OleDbType.VarChar).Value = vu.OtherInteractionTypeWithETPs;
+                            try
+                            {
+                                if (insert.ExecuteNonQuery() > 0)
+                                {
+                                    interaction_inserted_count++;
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Logger.Log(ex);
+                            }
+                        }
+                    }
+                }
+            }
+            return interaction_inserted_count == vu.TypesOfIntercationWithETPs.Count;
+        }
         private bool AddFieldToTable(string errorMessage)
         {
             bool success = false;
@@ -3672,7 +3813,18 @@ namespace NSAP_ODK.Entities.Database
 
                                 try
                                 {
-                                    success = cmd_1.ExecuteNonQuery() > 0;
+                                    if (cmd_1.ExecuteNonQuery() > 0)
+                                    {
+                                        if (item.HasInteractionWithETPs)
+                                        {
+                                            UpdateETPs(item);
+                                            UpdateETPInteraction(item);
+
+                                        }
+
+                                        success = true;
+
+                                    }
                                 }
                                 catch (OleDbException dbex)
                                 {
@@ -3700,7 +3852,83 @@ namespace NSAP_ODK.Entities.Database
             }
             return success;
         }
+        private static bool UpdateETPs(VesselUnload vu)
+        {
+            int updateCount = 0;
+            if (Global.Settings.UsemySQL)
+            {
 
+            }
+            else
+            {
+                using (var conn = new OleDbConnection())
+                {
+                    using (var update = conn.CreateCommand())
+                    {
+                        update.CommandText = @"UPDATE dbo_vessel_unload_etp_interaction SET
+                                              etp_name=@etp_name
+                                              WHERE v_unload_id=@id";
+                        foreach (var item in vu.ETPsIntercatedWith)
+                        {
+                            update.Parameters.Add("@etp_name", OleDbType.VarChar).Value = item;
+                            update.Parameters.Add("@id", OleDbType.Numeric).Value = vu.PK;
+                        }
+                        try
+                        {
+                            if(update.ExecuteNonQuery() > 0)
+                            {
+                                updateCount++;
+                            }
+                        }
+                        catch(Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+            return updateCount==vu.ETPsIntercatedWith.Count;
+        }
+
+        private static bool UpdateETPInteraction(VesselUnload vu)
+        {
+            int updateCount = 0;
+            if (Global.Settings.UsemySQL)
+            {
+
+            }
+            else
+            {
+                using (var conn = new OleDbConnection())
+                {
+                    using (var update = conn.CreateCommand())
+                    {
+                        update.CommandText = @"UPDATE dbo_vessel_unload_etp_interaction_type SET
+                                              etp_interaction=@interaction,
+                                              other_interaction=@other,
+                                              WHERE v_unload_id=@id";
+                        foreach (var item in vu.TypesOfIntercationWithETPs)
+                        {
+                            update.Parameters.Add("@interaction", OleDbType.VarChar).Value = item;
+                            update.Parameters.Add("@other", OleDbType.VarChar).Value = vu.OtherInteractionTypeWithETPs;
+                            update.Parameters.Add("@id", OleDbType.Numeric).Value = vu.PK;
+                        }
+                        try
+                        {
+                            if (update.ExecuteNonQuery() > 0)
+                            {
+                                updateCount++;
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+            return updateCount == vu.ETPsIntercatedWith.Count;
+        }
 
         public static bool ClearWeightValidationTable(string otherConnectionString = "")
         {

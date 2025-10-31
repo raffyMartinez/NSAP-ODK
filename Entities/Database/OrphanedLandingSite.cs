@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace NSAP_ODK.Entities.Database
 {
-    public class OrphanedLandingSite
+    public class OrphanedLandingSite:IOrphanedItem
     {
         public bool CanBeDeletedNow { get; set; }
         public string LandingSiteName { get; set; }

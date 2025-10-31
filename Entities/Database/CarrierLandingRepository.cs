@@ -20,6 +20,72 @@ namespace NSAP_ODK.Entities.Database
             CarrierLandings = getCarrierLandings(lss);
         }
 
+        public static bool ClearTable()
+        {
+            bool success = false;
+
+            using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
+            {
+                conn.Open();
+                var sql = "Delete * from dbo_carrier_landing";
+
+                using (OleDbCommand update = new OleDbCommand(sql, conn))
+                {
+                    try
+                    {
+                        update.ExecuteNonQuery();
+                        success = true;
+                    }
+                    catch (OleDbException)
+                    {
+                        success = false;
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                        success = false;
+                    }
+                }
+            }
+            return success;
+        }
+        public static async Task<bool>AddFieldToTable(string colName)
+        {
+            bool success = false;
+            string sql = "";
+            if(Global.Settings.UsemySQL)
+            {
+
+            }
+            else
+            {
+                using (var con = new OleDbConnection(Global.ConnectionString))
+                {
+                    using (var cmd = con.CreateCommand())
+                    {
+                        switch (colName)
+                        {
+                            case "sample_weight":
+                                sql = $"ALTER TABLE dbo_carrier_landing ADD COLUMN {colName} DOUBLE";
+                                break;
+                        }
+
+                        con.Open();
+                        cmd.CommandText = sql;
+                        try
+                        {
+                            await cmd.ExecuteNonQueryAsync();
+                            success = true;
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                }
+            }
+            return success;
+        }
         private List<CarrierLanding> getCarrierLandings(LandingSiteSampling lss)
         {
             List<CarrierLanding> this_list = new List<CarrierLanding>();

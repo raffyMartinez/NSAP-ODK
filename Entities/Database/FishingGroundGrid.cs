@@ -82,7 +82,9 @@ namespace NSAP_ODK.Entities.Database
 
         public bool DelayedSave { get; set; }
         public int PK { get; set; }
-        public int VesselUnloadID { get; set; }
+
+        public int? CatcherBoatOperationID { get; set; }
+        public int? VesselUnloadID { get; set; }
         public string UTMZoneText { get; set; }
         public string Grid { get; set; }
 
@@ -93,10 +95,15 @@ namespace NSAP_ODK.Entities.Database
                 return new UTMZone(UTMZoneText);
             }
         }
+
+        public override int GetHashCode()
+        {
+            return (UTMZoneText, Grid).GetHashCode();
+        }
         public override bool Equals(object obj)
         {
             string objType = obj.GetType().Name;
-            if(objType=="FishingGroundGrid" || objType=="FishingGroundGridEdited")
+            if (objType == "FishingGroundGrid" || objType == "FishingGroundGridEdited")
             {
                 if (objType == "FishingGroundGridEdited")
                 {
@@ -138,14 +145,16 @@ namespace NSAP_ODK.Entities.Database
             return $"{UTMZoneText} - {Grid}";
         }
 
+        public CatcherBoatOperation ParentCBO { get; set; }
+
         public VesselUnload Parent
         {
             set { _parent = value; }
             get
             {
-                if (_parent == null)
+                if (_parent == null && VesselUnloadID != null)
                 {
-                    _parent = NSAPEntities.VesselUnloadViewModel.getVesselUnload(VesselUnloadID);
+                    _parent = NSAPEntities.VesselUnloadViewModel.getVesselUnload((int)VesselUnloadID);
                 }
                 return _parent;
             }

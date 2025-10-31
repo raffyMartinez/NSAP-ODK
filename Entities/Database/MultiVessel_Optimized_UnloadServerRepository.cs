@@ -96,6 +96,7 @@ namespace NSAP_ODK.Entities.Database
             MultiVessel_Optimized_CBS_CatcherBoat.SetRowIDs();
             MultiVessel_Optimized_CBS_CatchComposition.SetRowIDs();
             MultiVessel_Optimized_CBS_CarrierBoatFishingGround.SetRowIDs();
+            MultiVessel_Optimized_CBS_CatcherBoat_FishingGroundGrid.SetRowIDs();
 
             MultiVessel_Optimized_CBS_GonadalMaturity.SetRowIDs();
             MultiVessel_Optimized_CBS_Length.SetRowIDs();
@@ -285,7 +286,14 @@ namespace NSAP_ODK.Entities.Database
                                 }
                                 else
                                 {
-                                    lss.LandingSiteText = root.LandingSiteText;
+                                    if (!string.IsNullOrEmpty(root.LandingSiteText))
+                                    {
+                                        lss.LandingSiteText = root.LandingSiteText;
+                                    }
+                                    else
+                                    {
+                                        lss.LandingSiteText = root.Landing_site_name;
+                                    }
                                 }
                             }
                             else
@@ -346,7 +354,7 @@ namespace NSAP_ODK.Entities.Database
                                     DelayedSave = true
                                 };
                                 proceed = NSAPEntities.LandingSiteSamplingSubmissionViewModel.Add(lsss);
-                                
+
                             }
                         }
 
@@ -472,9 +480,19 @@ namespace NSAP_ODK.Entities.Database
                                                             NumberOfSpeciesInCatchComposition = null,
                                                             IncludeEffortIndicators = sl.IncludeEffort,
                                                             LandingSiteSamplingSubmissionID = lsss.SubmissionID,
-
+                                                            HasInteractionWithETPs = sl.GearHasInteractionWithETP,
+                                                            //ETPsIntercatedWith = sl.ListETPsEncountered,
+                                                            //TypesOfIntercationWithETPs = sl.ListInteractionTypesWithETPs,
 
                                                         };
+
+                                                        if(vu.HasInteractionWithETPs)
+                                                        {
+                                                            vu.ETPsIntercatedWith = sl.ListETPsEncountered;
+                                                            vu.TypesOfIntercationWithETPs = sl.ListInteractionTypesWithETPs;
+                                                            vu.OtherInteractionTypeWithETPs = sl.OtherTypeOfInteractionWithETPs;
+                                                        }
+
                                                         if (gu.VesselUnloadViewModel.AddRecordToRepo(vu))
                                                         {
                                                             VesselUnloadViewModel.CurrentIDNumber = vu.PK;
@@ -874,7 +892,9 @@ namespace NSAP_ODK.Entities.Database
                                             CountCatchers = fish_carrier.CountCatcherBoats,
                                             CountSpeciesComposition = fish_carrier.CountCarrierSpeciesComposition,
                                             RowID = CarrierLandingViewModel.CurrentIDNumber + 1,
-                                            RefNo = fish_carrier.RefNo
+                                            RefNo = fish_carrier.RefNo,
+                                            WeightOfSample = fish_carrier.WeightOfSampleFromCarrier
+
                                         };
 
                                         if (lss.CarrierLandingViewModel.AddRecordToRepo(cl))
@@ -916,15 +936,40 @@ namespace NSAP_ODK.Entities.Database
                                                         WeightOfCatch = cb.WeightOfCatch
                                                     };
 
+
                                                     if (cl.CatcherBoatOperation_ViewModel.AddToRepo(cbo))
                                                     {
                                                         CatcherBoatOperation_ViewModel.CurrentIDNumber = cbo.RowID;
+
+                                                        if (cb.IsCatcherFishingGroundKnown)
+                                                        {
+                                                            cbo.FishingGroundGridViewModel = new FishingGroundGridViewModel(isNew: true);
+                                                            foreach (var db_fg in cb.Catcher_fishing_ground_grids)
+                                                            {
+                                                                FishingGroundGrid fgg_cb = new FishingGroundGrid
+                                                                {
+                                                                    Grid = $"{db_fg.CatcherBoatFishingGroundMajorGrid}-{db_fg.CatcherBoatFishingGroundColumn}{db_fg.CatcherBoatFishingGroundRow}",
+                                                                    UTMZoneText = cb.CatcherFishngGroundUTMZone,
+                                                                    ParentCBO = cbo,
+                                                                    PK = (int)db_fg.PK,
+                                                                    DelayedSave = true
+                                                                };
+
+
+                                                                if (cbo.FishingGroundGridViewModel.AddRecordToRepo(fgg_cb))
+                                                                {
+                                                                    FishingGroundGridViewModel.CurrentIDNumber = fgg_cb.PK;
+                                                                }
+                                                            }
+                                                        }
                                                     }
+
+
                                                 }
                                                 cl.CatcherBoatOperation_ViewModel.Dispose();
                                             }
 
-                                            if (fish_carrier?.CountCarrierSpeciesComposition > 0)
+                                            if (fish_carrier?.CountCarrierSpeciesComposition > 0 && fish_carrier.CarrierCatchCompositions != null)
                                             {
                                                 cl.VesselCatchViewModel = new VesselCatchViewModel(cl);
                                                 foreach (var cvc in fish_carrier.CarrierCatchCompositions)
@@ -1480,6 +1525,8 @@ namespace NSAP_ODK.Entities.Database
                 return Parent.SamplingDate.Add(TimeOfSampling.TimeOfDay);
             }
         }
+
+
         public int PK
         {
             get
@@ -1632,6 +1679,97 @@ namespace NSAP_ODK.Entities.Database
                 }
             }
         }
+
+
+
+
+
+        [JsonProperty("R_l/G_sl/G_l/has_ETP_gear_interaction")]
+        public string HasETPGearInteraction { get; set; }
+        public bool GearHasInteractionWithETP
+        {
+            get
+            {
+                return HasETPGearInteraction == "yes";
+            }
+        }
+
+
+        [JsonProperty("R_l/G_sl/G_l/etps_encoutered")]
+        public string ETPs_encountered { get; set; }
+
+
+        public List<string> ListETPsEncountered
+        {
+            get
+            {
+                var ls = new List<string>();
+                var arr = ETPs_encountered.Split(' ');
+                foreach (var item in arr)
+                {
+                    switch (item)
+                    {
+                        case "mm":
+                            ls.Add("Marine mammals");
+                            break;
+                        case "st":
+                            ls.Add("Sea turtles");
+                            break;
+                        case "sh":
+                            ls.Add("Sharks");
+                            break;
+                        case "ry":
+                            ls.Add("Rays");
+                            break;
+                    }
+                }
+                return ls;
+            }
+        }
+
+
+        [JsonProperty("R_l/G_sl/G_l/interaction_type")]
+        public string InteractionTypesWithETPs { get; set; }
+
+
+        public List<string> ListInteractionTypesWithETPs
+
+        {
+            get
+            {
+                var ls = new List<string>();
+                var arr = InteractionTypesWithETPs.Split(' ');
+                foreach (var item in arr)
+                {
+                    switch (item)
+                    {
+                        case "efg":
+                            ls.Add("Escape from gear");
+                            break;
+                        case "rel":
+                            ls.Add("Release");
+                            break;
+                        case "irl":
+                            ls.Add("Injury and release");
+                            break;
+                        case "mor":
+                            ls.Add("With Mortality");
+                            break;
+                        case "oin":
+                            ls.Add("Other interaction");
+                            break;
+                    }
+                }
+                return ls;
+            }
+        }
+
+
+
+
+        [JsonProperty("R_l/G_sl/G_l/other_interaction")]
+        public string OtherTypeOfInteractionWithETPs { get; set; }
+
 
         //[JsonProperty("R_l/G_sl/G_l/count_gears_used")]
         //public string count_gears_used { get; set; }
@@ -2620,11 +2758,82 @@ namespace NSAP_ODK.Entities.Database
         public double? WeightOfSample { get; set; }
     }
 
+
+    public class MultiVessel_Optimized_CBS_CatcherBoat_FishingGroundGrid
+    {
+        private MultiVessel_Optimized_CBS_CatcherBoat _parent;
+        private static int _pk;
+        private int _rowID;
+
+
+        public static void SetRowIDs()
+        {
+            _pk = NSAPEntities.SummaryItemViewModel.LastPrimaryKeys.LastCatcherBoatFishingGroundGridPK;
+            CatcherBoatOperation_ViewModel.CurrentIDNumber = _pk;
+            RowIDSet = true;
+        }
+        public int? PK
+        {
+            get
+            {
+                if (Parent.Parent.Parent.SavedInLocalDatabase)
+                {
+                    return null;
+                }
+                else
+                {
+                    if (_rowID == 0)
+                    {
+                        _rowID = ++_pk;
+                    }
+                    return _rowID;
+                }
+
+            }
+        }
+
+        public static bool RowIDSet { get; private set; }
+        public static void ResetIDState()
+        {
+            RowIDSet = false;
+        }
+        public MultiVessel_Optimized_CBS_CatcherBoat Parent { get { return _parent; } set { _parent = value; } }
+
+        [JsonProperty("G_CBO/R_S_CB/G_cbd_o/R_CB/G_ct_b_out/R_cb_fg/G_cb_fg_out/major_grid_cb")]
+        public int CatcherBoatFishingGroundMajorGrid { get; set; }
+
+        [JsonProperty("G_CBO/R_S_CB/G_cbd_o/R_CB/G_ct_b_out/R_cb_fg/G_cb_fg_out/col_name_cb")]
+        public string CatcherBoatFishingGroundColumn { get; set; }
+
+        [JsonProperty("G_CBO/R_S_CB/G_cbd_o/R_CB/G_ct_b_out/R_cb_fg/G_cb_fg_out/row_name_cb")]
+        public int CatcherBoatFishingGroundRow { get; set; }
+    }
     public class MultiVessel_Optimized_CBS_CatcherBoat
     {
+        private List<MultiVessel_Optimized_CBS_CatcherBoat_FishingGroundGrid> _catcher_fishing_grounds;
         private MultiVessel_Optimized_CBS_FishCarrier _parent;
         private static int _pk;
         private int _rowID;
+
+
+        [JsonProperty("G_CBO/R_S_CB/G_cbd_o/R_CB/G_ct_b_out/R_cb_fg")]
+        public List<MultiVessel_Optimized_CBS_CatcherBoat_FishingGroundGrid> Catcher_fishing_ground_grids
+
+        {
+            get
+            {
+                return _catcher_fishing_grounds;
+            }
+            set
+            {
+                _catcher_fishing_grounds = value;
+                foreach (var item in _catcher_fishing_grounds)
+                {
+                    item.Parent = this; ;
+                }
+
+            }
+        }
 
         public static bool RowIDSet { get; private set; }
 
@@ -2665,6 +2874,25 @@ namespace NSAP_ODK.Entities.Database
 
         [JsonProperty("G_CBO/R_S_CB/G_cbd_o/R_CB/G_ct_b_out/G_ct_b/gear_code_catcher")]
         public string GearCode { get; set; }
+
+
+
+        [JsonProperty("G_CBO/R_S_CB/G_cbd_o/R_CB/G_ct_b_out/G_fg_cb_main/fishing_ground_catcher_boat_known")]
+        public string CatcherFishingGroundIsKnown { get; set; }
+
+        [JsonProperty("G_CBO/R_S_CB/G_cbd_o/R_CB/G_ct_b_out/G_fg_cb_main/count_catcher_fg")]
+        public int? CountFishingGroundsOfCatcher { get; set; }
+
+        [JsonProperty("G_CBO/R_S_CB/G_cbd_o/R_CB/G_ct_b_out/G_fg_cb_main/cb_utmZone")]
+        public string CatcherFishngGroundUTMZone { get; set; }
+
+        public bool IsCatcherFishingGroundKnown
+        {
+            get
+            {
+                return CatcherFishingGroundIsKnown == "yes";
+            }
+        }
 
         public Gear Gear
         {
@@ -3043,6 +3271,9 @@ namespace NSAP_ODK.Entities.Database
 
         [JsonProperty("G_CBO/R_S_CB/G_cbd_o/G_cbd/count_species_of_carrier")]
         public int CountCarrierSpeciesComposition { get; set; }
+
+        [JsonProperty("G_CBO/R_S_CB/G_cbd_o/G_cbd/wt_sample_from_carrrier")]
+        public double? WeightOfSampleFromCarrier { get; set; }
 
 
         [JsonProperty("G_CBO/R_S_CB/G_cbd_o/G_cbs_summary/cbs_ref_no")]
@@ -3607,7 +3838,16 @@ namespace NSAP_ODK.Entities.Database
                 else
                 {
                     //return NSAPEntities.NSAPEnumeratorViewModel.GetNSAPEnumerator((int)RegionEnumeratorID);
-                    return NSAPRegion.NSAPEnumerators.FirstOrDefault(t => t.RowID == (int)RegionEnumeratorID).Enumerator;
+                    var nre = NSAPRegion.NSAPEnumerators.FirstOrDefault(t => t.RowID == (int)RegionEnumeratorID);
+                    if (nre != null)
+                    {
+                        return nre.Enumerator;
+                    }
+                    else
+                    {
+                        return null;
+                    }
+                    //return NSAPRegion.NSAPEnumerators.FirstOrDefault(t => t.RowID == (int)RegionEnumeratorID).Enumerator;
                 }
             }
         }
@@ -3621,7 +3861,16 @@ namespace NSAP_ODK.Entities.Database
                 }
                 else
                 {
-                    return NSAPEnumerator.Name;
+                    if (NSAPEnumerator != null)
+                    {
+
+
+                        return NSAPEnumerator.Name;
+                    }
+                    else
+                    {
+                        return null;
+                    }
                 }
             }
         }
@@ -3656,6 +3905,20 @@ namespace NSAP_ODK.Entities.Database
             }
         }
 
+        public string SamplingType
+        {
+            get
+            {
+                if (TypeOfSampling == "rs")
+                {
+                    return "Regular sampling";
+                }
+                else
+                {
+                    return "Carrier boat landings sampling";
+                }
+            }
+        }
 
         public double FormVersion
         {

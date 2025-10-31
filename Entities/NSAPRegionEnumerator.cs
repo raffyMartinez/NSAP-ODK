@@ -30,6 +30,8 @@ namespace NSAP_ODK.Entities
             }
         }
 
+        
+
         [Editor(typeof(DateTimePickerEditor), typeof(DateTimePicker))]
         public DateTime DateStart { get; set; }
 
@@ -60,7 +62,7 @@ namespace NSAP_ODK.Entities
 
         public override string ToString()
         {
-            return Enumerator.Name;
+            return $"{Enumerator.Name} ID: {Enumerator.ID}";
         }
 
     }

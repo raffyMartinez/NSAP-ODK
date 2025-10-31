@@ -221,8 +221,15 @@
     <Compile Include="Entities\Database\CalendarMonth.cs" />
     <Compile Include="Entities\Database\CalendarMonthRepository.cs" />
     <Compile Include="Entities\Database\CalendarMonthViewModel.cs" />
+    <Compile Include="Entities\Database\ETP.cs" />
+    <Compile Include="Entities\Database\ETPInteractionRepository.cs" />
+    <Compile Include="Entities\Database\ETPInteractionViewModel.cs" />
+    <Compile Include="Entities\Database\ETPRepository.cs" />
+    <Compile Include="Entities\Database\ETPviewModel.cs" />
+    <Compile Include="Entities\Database\ETP_Interaction.cs" />
     <Compile Include="Entities\Database\FemaleMaturitySummary.cs" />
     <Compile Include="Entities\Database\CalendarGearSector.cs" />
+    <Compile Include="Entities\Database\IOrphanedItem.cs" />
     <Compile Include="Entities\Database\LandingSiteMeasurementCount.cs" />
     <Compile Include="Entities\Database\LandingSiteMeasurementFemaleMaturity.cs" />
     <Compile Include="Entities\Database\MakeCalendarEventArg.cs" />
@@ -269,6 +276,8 @@
     <Compile Include="Entities\Database\NSAPReports\DateGearBoatsCatch.cs" />
     <Compile Include="Entities\Database\NSAPReports\NSAPForm1.cs" />
     <Compile Include="Entities\Database\ObjectDataHolder_KeyValuePair.cs" />
+    <Compile Include="Entities\Database\OrphanedEnumeratorFromCarrierLandings.cs" />
+    <Compile Include="Entities\Database\OrphanedLandingSiteFromCarrierLandings.cs" />
     <Compile Include="Entities\Database\ProcessingItemsEventArg.cs" />
     <Compile Include="Entities\Database\GearAtLandingSiteDaysPerMonth.cs" />
     <Compile Include="Entities\Database\GearAtLandingSiteDaysPerMonthRepository.cs" />

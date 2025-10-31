@@ -57,12 +57,12 @@
                     ItemsSource="{Binding Children}">
 
                     <StackPanel Orientation="Horizontal">
-                        <StackPanel.ContextMenu>
-                            <ContextMenu>
+                        <!--<StackPanel.ContextMenu>-->
+                            <!--<ContextMenu>
                                 <MenuItem Header="Edit gear unload" Click="OnContextMenuClick" x:Name="contextMenuGearUnloadFishingGround"/>
                             </ContextMenu>
-                        </StackPanel.ContextMenu>
-                        <!-- <Image Width="16" Height="16" Margin="3,0" Source="Images\Region.png" /> -->
+                        </StackPanel.ContextMenu>-->
+                         <!--<Image Width="16" Height="16" Margin="3,0" Source="Images\Region.png" />--> 
                         <TextBlock Text="{Binding Name}" />
                     </StackPanel>
                 </HierarchicalDataTemplate>
@@ -77,7 +77,7 @@
                                 <MenuItem Header="Crosstab report" Click="OnContextMenuClick" x:Name="contextMenuCrosstabLandingSite"/>
                                 <MenuItem Header="Measurement counts" Click="OnContextMenuClick" x:Name="contextMenuMeasurementCountsLandingSite"/>
                                 <MenuItem Header="Female maturity measurement counts" Click="OnContextMenuClick" x:Name="contextMenuFemaleMeasurementCountsLandingSite"/>
-                                <MenuItem Header="Edit gear unload" Click="OnContextMenuClick" x:Name="contextMenuGearUnloadLandingSite"/>
+                                <!--<MenuItem Header="Edit gear unload" Click="OnContextMenuClick" x:Name="contextMenuGearUnloadLandingSite"/>-->
                             </ContextMenu>
                         </StackPanel.ContextMenu>
                         <!-- <Image Width="16" Height="16" Margin="3,0" Source="Images\Region.png" /> -->
@@ -103,7 +103,7 @@
                                     <MenuItem Header="NSAP Form 4" Click="OnContextMenuClick" x:Name="contextMenuNSAPForm4"/>
                                     <MenuItem Header="NSAP Form 5" Click="OnContextMenuClick" x:Name="contextMenuNSAPForm5"/>
                                 </MenuItem>
-                                <MenuItem Header="Edit gear unload" Click="OnContextMenuClick" x:Name="contextMenuGearUnloadMonth" />
+                                <!--<MenuItem Header="Edit gear unload" Click="OnContextMenuClick" x:Name="contextMenuGearUnloadMonth" />-->
                                 <Separator/>
                                 <MenuItem Header="Weight and weight validation for landings" Click="OnContextMenuClick" x:Name="contextMenuWeightValidation"/>
                                 <!--<Separator/>

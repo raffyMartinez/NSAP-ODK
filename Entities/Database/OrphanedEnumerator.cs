@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace NSAP_ODK.Entities.Database
 {
-    public class OrphanedEnumerator
+    public class OrphanedEnumerator : IOrphanedItem
     {
         public List<SummaryItem> SummaryItems { get; set; }
         public GearUnload GearUnload { get; set; }

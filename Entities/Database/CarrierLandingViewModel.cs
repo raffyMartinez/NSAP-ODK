@@ -7,7 +7,7 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 namespace NSAP_ODK.Entities.Database
 {
-    public class CarrierLandingViewModel:IDisposable
+    public class CarrierLandingViewModel : IDisposable
     {
         private static StringBuilder _csv = new StringBuilder();
         private bool _editSuccess;
@@ -114,7 +114,7 @@ namespace NSAP_ODK.Entities.Database
             myDict.Add("row_id", item.RowID.ToString());
             myDict.Add("carrier_name", item.CarrierName);
             myDict.Add("landingsitesampling_id", item.Parent.PK.ToString());
-            myDict.Add("sampling_date", item.SamplingDate.ToString());
+            myDict.Add("sampling_time", item.SamplingDate.ToString());
             myDict.Add("count_catchers", item.CountCatchers == null ? "" : item.CountCatchers.ToString());
             myDict.Add("count_species_catch_composition", item.CountSpeciesComposition.ToString());
 
@@ -125,6 +125,7 @@ namespace NSAP_ODK.Entities.Database
             }
             myDict.Add("weight_catch", wt_catch);
             myDict.Add("ref_no", item.RefNo);
+            myDict.Add("sample_weight", item.WeightOfSample != null ? ((double)item.WeightOfSample).ToString() : "");
             _csv.AppendLine(CreateTablesInAccess.CSVFromObjectDataDictionary(myDict, "dbo_carrier_landing"));
 
 

@@ -2202,9 +2202,14 @@ namespace NSAP_ODK.Views
                         ((ComboBoxItem)comboboxDownloadOption.Items[0]).IsSelected = true;
 
                         ComboUser.Items.Clear();
-                        foreach (var user in _koboForms.FirstOrDefault(t => t.formid == int.Parse(_formID)).users)
+
+                        var kf = _koboForms.FirstOrDefault(t => t.formid == int.Parse(_formID));
+                        if (kf.users != null)
                         {
-                            ComboUser.Items.Add(new ComboBoxItem { Content = user.user });
+                            foreach (var user in kf.users)
+                            {
+                                ComboUser.Items.Add(new ComboBoxItem { Content = user.user });
+                            }
                         }
                         ((ODKResultsWindow)Owner).IsMultiGear = _formSummary.IsMultiGear;
                         ((ODKResultsWindow)Owner).IsMultiVessel = _formSummary.IsMultiVessel;

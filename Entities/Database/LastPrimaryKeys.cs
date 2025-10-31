@@ -28,9 +28,11 @@ namespace NSAP_ODK.Entities.Database
             LastCarrierPK = 0;
             LastCarrierSamplingCatcherBoatOperationPK = 0;
             LastCarrierSamplingFishingGroundPK = 0;
+            LastCatcherBoatFishingGroundGridPK = 0;
 
         }
 
+        public int LastCatcherBoatFishingGroundGridPK { get; set; }
         public int LastCarrierPK { get; set; }
         public int LastCarrierSamplingCatcherBoatOperationPK { get; set; }
         public int LastCarrierSamplingFishingGroundPK { get; set; }

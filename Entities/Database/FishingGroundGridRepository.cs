@@ -14,6 +14,10 @@ namespace NSAP_ODK.Entities.Database
     {
         public List<FishingGroundGrid> FishingGroundGrids { get; set; }
 
+        public FishingGroundGridRepository(CatcherBoatOperation cbo)
+        {
+            FishingGroundGrids = getFishingGroundGrids(cbo);
+        }
         public FishingGroundGridRepository(VesselUnload vu)
         {
             FishingGroundGrids = getFishingGroundGrids(vu);
@@ -22,6 +26,51 @@ namespace NSAP_ODK.Entities.Database
         public static Task<bool> DeleteServerDataAsync(string serverID)
         {
             return Task.Run(() => DeleteServerData(serverID));
+        }
+
+        public static async Task<bool> AddFieldToTable(string fieldName)
+        {
+            bool success = false;
+            string sql = "";
+            switch (fieldName)
+            {
+                case "CatcherBoatID":
+                    sql = $"ALTER TABLE dbo_fg_grid ADD COLUMN {fieldName} INT";
+                    break;
+            }
+            using (var con = new OleDbConnection(Global.ConnectionString))
+            {
+                using (var cmd = con.CreateCommand())
+                {
+                    con.Open();
+                    cmd.CommandText = sql;
+                    try
+                    {
+                        await cmd.ExecuteNonQueryAsync();
+                        success = true;
+                        if(success && fieldName=="CatcherBoatID")
+                        {
+                            sql = @"ALTER TABLE dbo_fg_grid ADD CONSTRAINT FK_vufg_catcher_boat
+                                                    FOREIGN KEY(CatcherBoatID) REFERENCES dbo_catcher_boat_operations(row_id)";
+                            cmd.CommandText = sql;
+                            try
+                            {
+                                await cmd.ExecuteNonQueryAsync();
+                                success = true;
+                            }
+                            catch(Exception ex)
+                            {
+                                Logger.Log(ex);
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
+                }
+            }
+            return success;
         }
         private static bool DeleteServerData(string serverID)
         {
@@ -163,6 +212,53 @@ namespace NSAP_ODK.Entities.Database
                         item.UTMZoneText = dr["utm_zone"].ToString();
                         item.Grid = dr["grid25"].ToString();
                         thisList.Add(item);
+                    }
+                }
+            }
+            return thisList;
+        }
+
+        private List<FishingGroundGrid>getFishingGroundGrids(CatcherBoatOperation cbo)
+        {
+            List<FishingGroundGrid> thisList = new List<FishingGroundGrid>();
+            if (Global.Settings.UsemySQL)
+            {
+                //thisList = getFromMySQL(vu);
+            }
+            else
+            {
+
+                using (var conection = new OleDbConnection(Global.ConnectionString))
+                {
+                    using (var cmd = conection.CreateCommand())
+                    {
+                        try
+                        {
+                            conection.Open();
+                            {
+                                cmd.Parameters.AddWithValue("@parentID", cbo.RowID);
+                                cmd.CommandText = "Select * from dbo_fg_grid where CatcherBoatID=@parentID";
+                            }
+
+
+                            thisList.Clear();
+                            OleDbDataReader dr = cmd.ExecuteReader();
+                            while (dr.Read())
+                            {
+                                FishingGroundGrid item = new FishingGroundGrid();
+                                item.ParentCBO = cbo;
+                                item.PK = (int)dr["fg_grid_id"];
+                                item.CatcherBoatOperationID = (int)dr["CatcherBoatID"];
+                                item.UTMZoneText = dr["utm_zone"].ToString();
+                                item.Grid = dr["grid25"].ToString();
+                                thisList.Add(item);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+
+                        }
                     }
                 }
             }

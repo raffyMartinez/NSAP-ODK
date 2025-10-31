@@ -84,7 +84,6 @@ namespace NSAP_ODK.Views
             _listSource = GearUnloadWindowListSource.listSourceVesselUnload;
             tabItemPageBoatCount.Visibility = Visibility.Collapsed;
             rowMenu.Height = new GridLength(0);
-
         }
 
         public GearUnloadWindow(List<GearUnload> gearUnloads, TreeViewModelControl.AllSamplingEntitiesEventHandler treeItemData, MainWindow parent, string sector_code)
@@ -437,7 +436,7 @@ namespace NSAP_ODK.Views
                     speciesCaughtTitle = $" and catching {speciesName}";
                 }
                 TurnGridOff(vis: Visibility.Visible);
-                LabelTitle.Content = $"Vessel unloads from {_vesselUnloads[0].Parent.Parent.LandingSite} using {_vesselUnloads[0].Parent.GearUsedName} on {_vesselUnloads[0].Parent.Parent.SamplingDate.ToString("MMM-dd-yyyy")} {speciesCaughtTitle}";
+                LabelTitle.Content = $"Vessel unloads from {_vesselUnloads[0].Parent.Parent.LandingSite} using {_vesselUnloads[0].Parent.GearUsedName} ({_vesselUnloads[0].Sector}) on {_vesselUnloads[0].Parent.Parent.SamplingDate.ToString("MMM-dd-yyyy")} {speciesCaughtTitle}";
             }
             else
             {
@@ -811,7 +810,7 @@ namespace NSAP_ODK.Views
                     speciesNameInTitle = $" and catching {WatchedSpecies}";
                 }
 
-                LabelTitle.Content = $"Vessel unloads from {_gearUnloads[0].Parent.LandingSite} using {_gearUnloads[0].GearUsedName} on {_gearUnloads[0].Parent.SamplingDate.ToString("MMM-dd-yyyy")}{speciesNameInTitle}";
+                LabelTitle.Content = $"Vessel unloads from {_gearUnloads[0].Parent.LandingSite} using {_gearUnloads[0].GearUsedName} ({_gearUnloads[0].ListVesselUnload[0].Sector}) on {_gearUnloads[0].Parent.SamplingDate.ToString("MMM-dd-yyyy")}{speciesNameInTitle}";
 
 
 

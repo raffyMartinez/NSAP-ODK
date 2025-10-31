@@ -1660,6 +1660,9 @@ namespace NSAP_ODK.Views
                     break;
                 #endregion
 
+                //File->save JSON now
+                case "menuSaveJsonNow":
+                    break;
 
                 //File->save JSON
                 case "menuSaveJson":
@@ -3047,6 +3050,7 @@ namespace NSAP_ODK.Views
                     _targetGrid.Columns.Add(new DataGridTextColumn { Header = "Fishing ground", Binding = new Binding("Parent.FishingGround.Name") });
                     _targetGrid.Columns.Add(new DataGridTextColumn { Header = "Landing site ID", Binding = new Binding("Parent.LandingSiteID") });
                     _targetGrid.Columns.Add(new DataGridTextColumn { Header = "Landing site", Binding = new Binding("Parent.LandingSiteName") });
+                    _targetGrid.Columns.Add(new DataGridTextColumn { Header = "Type of sampling", Binding = new Binding("Parent.SamplingType") });
                     _targetGrid.Columns.Add(new DataGridTextColumn { Header = "Number of gears used", Binding = new Binding("NumberOfGearsUsedInSampledLanding") });
                     _targetGrid.Columns.Add(new DataGridTextColumn { Header = "Names of gears used", Binding = new Binding("NamesOfGearsUsed") });
                     _targetGrid.Columns.Add(new DataGridCheckBoxColumn { Header = "Is sampling day", Binding = new Binding("Parent.IsSamplingDay") });
@@ -3681,14 +3685,15 @@ namespace NSAP_ODK.Views
             menuUpload.IsEnabled = menuTag == "effort" || menuTag == "landingSiteSampling" || menuTag == "effort_multiVessel";
             if (_isJSONData)
             {
-                if (_jsonfiles != null && _jsonfiles.Count > 0)
-                {
-                    ShowResultFromAPI(menuTag);
-                }
-                else
-                {
-                    ShowResultFromAPI(menuTag);
-                }
+                //if (_jsonfiles != null && _jsonfiles.Count > 0)
+                //{
+                //    ShowResultFromAPI(menuTag);
+                //}
+                //else
+                //{
+                //    ShowResultFromAPI(menuTag);
+                //}
+                ShowResultFromAPI(menuTag);
             }
             else
             {

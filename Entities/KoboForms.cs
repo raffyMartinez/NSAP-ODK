@@ -150,7 +150,7 @@ namespace NSAP_ODK.Entities
             DateModified = form.date_modified.ToString("MMM-dd-yyyy HH:mm");
             DateLastSubmission = form.last_submission_time == null ? "" : ((DateTime)form.last_submission_time).ToString("MMM-dd-yyyy HH:mm:ss");
             NumberOfSubmissions = form.num_of_submissions;
-            NumberOfUsers = form.users.Count;
+            //NumberOfUsers = form.users.Count;
             FormID = form.formid;
             SubmittedToday = form.submission_count_for_today;
             XLSForm_Version = form.xlsform_version;
@@ -158,6 +158,11 @@ namespace NSAP_ODK.Entities
             EFormVersion = form.eForm_version;
             KPI_id_uid = form.kpi_asset_uid;
             Owner = form.owner;
+
+            if(form.users!=null)
+            {
+                NumberOfUsers = form.users.Count;
+            }
             if (Title.Contains("Fisheries landing survey") || Title.Contains("NSAP Fish Catch Monitoring e-Form"))
             {
                 KoboFormType = KoboFormType.FormTypeCatchAndEffort;

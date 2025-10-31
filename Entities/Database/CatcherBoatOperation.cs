@@ -14,6 +14,7 @@ namespace NSAP_ODK.Entities.Database
         public double? WeightOfCatch { get; set; }
         public string GearCode { get; set; }
 
+        public FishingGroundGridViewModel FishingGroundGridViewModel { get; set; }
         public CarrierLanding Parent{ get; set; }
         //public CarrierLanding CarrierLanding
         //{

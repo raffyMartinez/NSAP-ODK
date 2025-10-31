@@ -15,7 +15,7 @@ namespace NSAP_ODK.Entities
 
         public override string ToString()
         {
-            return Name;
+            return $"{Name} ID:{ID}";
         }
 
 
