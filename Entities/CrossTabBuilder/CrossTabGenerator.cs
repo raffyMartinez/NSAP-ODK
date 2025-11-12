@@ -44,7 +44,7 @@ namespace NSAP_ODK.Entities.CrossTabBuilder
             VesselEffortCrossTabs = VesselEffortRepository.GetEffortForCrossTab(EntitiesOfMonth);
             return VesselEffortCrossTabs;
         }
-        public static void GetFromRepository()
+        public static void GetFromRepository(bool withETPInteraction = false)
         {
             try
             {
@@ -54,7 +54,7 @@ namespace NSAP_ODK.Entities.CrossTabBuilder
                 //}
                 LandingSiteSamplingForCrosstabs = LandingSiteSamplingRepository.GetLandingSiteSamplingsForCrossTab(EntitiesOfMonth);
                 GearUnloads = GearUnloadRepository.GetGearUnloadsForCrosstab(EntitiesOfMonth);
-                VesselUnloads = VesselUnloadRepository.GetVesselUnloads(EntitiesOfMonth);
+                VesselUnloads = VesselUnloadRepository.GetVesselUnloads(EntitiesOfMonth, includeETPInteraction: withETPInteraction);
 
                 foreach (VesselUnload vu in VesselUnloads)
                 {
@@ -173,7 +173,7 @@ namespace NSAP_ODK.Entities.CrossTabBuilder
             GetEntities(entitiesDefinition);
             if (generateDataset)
             {
-                return CrossTabDatasetsGenerator.GenerateDatasets();
+                return CrossTabDatasetsGenerator.GenerateDatasets(EntitiesOfMonth);
             }
             else
             {

@@ -860,6 +860,7 @@ namespace NSAP_ODK.Views
                 GridVesselUnload.Columns.Add(new DataGridTextColumn { Header = "Catch composition count", Binding = new Binding("CatchCompositionCountText") });
                 GridVesselUnload.Columns.Add(new DataGridCheckBoxColumn { Header = "Tracking", Binding = new Binding("OperationIsTracked") });
                 GridVesselUnload.Columns.Add(new DataGridTextColumn { Header = "GPS", Binding = new Binding("GPS.AssignedName") });
+                GridVesselUnload.Columns.Add(new DataGridCheckBoxColumn { Header = "ETP-Gear interaction", Binding = new Binding("HasInteractionWithETPs") });
                 GridVesselUnload.Columns.Add(new DataGridTextColumn { Header = "Notes", Binding = new Binding("Notes") });
             }
         }

@@ -385,6 +385,7 @@
     <Compile Include="Entities\Database\VesselUnload7ServerRepository.cs" />
     <Compile Include="Entities\Database\MultiVesselGear_UnloadServerRepository.cs" />
     <Compile Include="Entities\Database\VesselUnloadServerRepository.cs" />
+    <Compile Include="Entities\Database\VesselUnload_ETP_Interaction.cs" />
     <Compile Include="Entities\Database\VesselUnload_FishingGear.cs" />
     <Compile Include="Entities\Database\VesselUnload_FishingGearRepository.cs" />
     <Compile Include="Entities\Database\VesselUnload_FishingGearViewModel.cs" />

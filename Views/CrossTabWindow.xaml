@@ -32,6 +32,7 @@
             <TreeViewItem Header="Catch length-weight" x:Name="tviLenWt"/>
             <TreeViewItem Header="Catch length frequency" x:Name="tviLenFreq"/>
             <TreeViewItem Header="Catch maturity" x:Name="tviMaturity"/>
+            <TreeViewItem Header="ETP-Gear interaction" x:Name="tviETPGear"/>
         </TreeView>
         <DataGrid Grid.Row="2" Grid.Column="1" x:Name="dataGrid" Margin="10" ItemsSource="{Binding}" />
         <WrapPanel Grid.Row="3" Grid.ColumnSpan="2" HorizontalAlignment="Right" Margin="5">

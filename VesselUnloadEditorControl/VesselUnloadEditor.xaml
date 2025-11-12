@@ -24,13 +24,19 @@
 
         <xctk:PropertyGrid Grid.Row="1" Grid.ColumnSpan="2" x:Name="propertyGrid" Margin="10" IsReadOnly="True"  ShowTitle="false" 
                            PropertyValueChanged="OnPropertyValueChanged" ShowAdvancedOptions="False" ShowSearchBox="False" ShowSortOptions="False"/>
-        
+
+
         <DataGrid x:Name="effortDataGrid" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" IsReadOnly="True" Margin="10" SelectionUnit="FullRow"
                   AutoGenerateColumns="False" ItemsSource="{Binding}" SelectionChanged="OnDataGridSelectionChanged" MouseDoubleClick="OnGridDoubleClick" GotFocus="OnGridGotFocus" LoadingRow="OnDataGridLoadingRow"/>
-        
+
         <DataGrid x:Name="catchDataGrid" Grid.Row="2" Grid.Column="1" Visibility="Collapsed" IsReadOnly="True" Margin="10" SelectionUnit="FullRow"
                   AutoGenerateColumns="False" ItemsSource="{Binding}" SelectionChanged="OnDataGridSelectionChanged" MouseDoubleClick="OnGridDoubleClick" GotFocus="OnGridGotFocus" LoadingRow="OnDataGridLoadingRow"/>
-        
+
+        <!--<WrapPanel x:Name="panelETPInteraction" Grid.Row="2" Orientation="Horizontal" >
+            <DataGrid x:Name="etpNamesDataGrid"/>
+            <DataGrid x:Name="etpInteractionsDataGrid"/>
+        </WrapPanel>-->
+
         <WrapPanel Grid.Row="3" Grid.ColumnSpan="2" HorizontalAlignment="Center" VerticalAlignment="Center">
             <Button x:Name="buttonDelete" Content="Delete" Height="30" Width="60" Click="OnButtonClicked" Margin="10 0" IsEnabled="False"/>
             <Button x:Name="buttonEdit" Content="Edit" Height="30" Width="60" Click="OnButtonClicked" Margin="10 0" Visibility="Collapsed" IsEnabled="False"/>

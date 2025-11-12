@@ -8,6 +8,7 @@ namespace NSAP_ODK.Entities.Database
 {
     public class LastPrimaryKeys
     {
+
         public void Reset()
         {
             LastVesselUnloadPK = 0;
@@ -29,6 +30,8 @@ namespace NSAP_ODK.Entities.Database
             LastCarrierSamplingCatcherBoatOperationPK = 0;
             LastCarrierSamplingFishingGroundPK = 0;
             LastCatcherBoatFishingGroundGridPK = 0;
+            LastETPNamePK = 0;
+            LastETPInteractionPK = 0;
 
         }
 
@@ -58,5 +61,9 @@ namespace NSAP_ODK.Entities.Database
 
         public int LastVesselUnloadGearPK { get; set; }
         public int LastVesselUnloadGearSpecPK { get; set; }
+
+        public int LastETPNamePK { get; set; }
+
+        public int LastETPInteractionPK { get; set; }
     }
 }

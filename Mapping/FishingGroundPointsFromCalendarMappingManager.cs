@@ -370,7 +370,7 @@ namespace NSAP_ODK.Mapping
                     //layerName = $"{SpeciesName} {EntitiesMonth.LandingSite}, {((DateTime)EntitiesMonth.MonthSampled).ToString("MMM - yyyy")}";
                     break;
                 case "contextMenuMapMonth":
-                    vus = CrossTabGenerator.VesselUnloads.Where(t => t.FirstFishingGroundCoordinate != null).ToList();
+                     vus = CrossTabGenerator.VesselUnloads.Where(t => t.FirstFishingGroundCoordinate != null).ToList();
                     //layerName = $"{EntitiesMonth.LandingSite}, {((DateTime)EntitiesMonth.MonthSampled).ToString("MMM - yyyy")}";
                     break;
             }

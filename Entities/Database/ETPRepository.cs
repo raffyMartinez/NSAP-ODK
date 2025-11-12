@@ -14,6 +14,10 @@ namespace NSAP_ODK.Entities.Database
     {
         public List<ETP> ETPs { get; set; }
 
+        public ETPRepository()
+        {
+
+        }
         public ETPRepository(VesselUnload vu)
         {
             ETPs = getETPs(vu);
@@ -28,17 +32,20 @@ namespace NSAP_ODK.Entities.Database
             }
             else
             {
-                using (OleDbConnection conn = new OleDbConnection())
+                using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
                 {
                     using (OleDbCommand cmd = conn.CreateCommand())
                     {
                         cmd.Parameters.AddWithValue("@vu_id", vu.PK);
                         cmd.CommandText = @"Select * from dbo_vessel_unload_etp_interaction
                                           WHERE v_unload_id=@vu_id";
-                        var dr = cmd.ExecuteReader();
-                        conn.Open();
+                        
                         try
                         {
+                            conn.Open();
+                            var dr = cmd.ExecuteReader();
+
+
                             while (dr.Read())
                             {
                                 ETP etp = new ETP
@@ -70,7 +77,7 @@ namespace NSAP_ODK.Entities.Database
             }
             else
             {
-                using (OleDbConnection con = new OleDbConnection())
+                using (OleDbConnection con = new OleDbConnection(Global.ConnectionString))
                 {
                     using (OleDbCommand cmd = con.CreateCommand())
                     {
@@ -89,17 +96,17 @@ namespace NSAP_ODK.Entities.Database
                         {
                             success = cmd.ExecuteNonQuery() > 0;
                         }
-                        catch(Exception ex)
+                        catch (Exception ex)
                         {
 
                         }
                     }
-                    
+
                 }
             }
             return success;
         }
-        public int MaxRecordNumber()
+        public static int MaxRecordNumber()
         {
             int max_rec_no = 0;
             if (Global.Settings.UsemySQL)
@@ -148,13 +155,13 @@ namespace NSAP_ODK.Entities.Database
         public bool Delete(int pk)
         {
             bool success = false;
-            if(Global.Settings.UsemySQL)
+            if (Global.Settings.UsemySQL)
             {
 
             }
             else
             {
-                using (var con = new OleDbConnection())
+                using (var con = new OleDbConnection(Global.ConnectionString))
                 {
                     using (var cmd = con.CreateCommand())
                     {
@@ -167,7 +174,7 @@ namespace NSAP_ODK.Entities.Database
                         {
                             success = cmd.ExecuteNonQuery() > 0;
                         }
-                        catch(Exception ex)
+                        catch (Exception ex)
                         {
                             Logger.Log(ex);
                         }
@@ -186,7 +193,7 @@ namespace NSAP_ODK.Entities.Database
             }
             else
             {
-                using (var con = new OleDbConnection())
+                using (var con = new OleDbConnection(Global.ConnectionString))
                 {
                     using (var cmd = con.CreateCommand())
                     {
@@ -212,13 +219,13 @@ namespace NSAP_ODK.Entities.Database
         public bool Update(ETP etp)
         {
             bool success = false;
-            if(Global.Settings.UsemySQL)
+            if (Global.Settings.UsemySQL)
             {
 
             }
             else
             {
-                using (var con = new OleDbConnection())
+                using (var con = new OleDbConnection(Global.ConnectionString))
                 {
                     using (var cmd = con.CreateCommand())
                     {
@@ -235,7 +242,7 @@ namespace NSAP_ODK.Entities.Database
                         {
                             success = cmd.ExecuteNonQuery() > 0;
                         }
-                        catch(Exception ex)
+                        catch (Exception ex)
                         {
 
                         }

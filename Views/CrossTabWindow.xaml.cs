@@ -123,6 +123,10 @@ namespace NSAP_ODK.Views
                     dataGrid.DataContext = CrossTabDatasetsGenerator.SpeciesMaturityDataTable;
                     labelTitle.Content = $"Length, weight, and maturity data of catch from sampled landings at {location_date}";
                     break;
+                case "tviETPGear":
+                    dataGrid.DataContext = CrossTabDatasetsGenerator.GearETPInteractionDataTable;
+                    labelTitle.Content = $"Interaction of fishing gear with ETPs at {location_date}";
+                    break;
             }
             var eh = CrossTabGenerator.EntitiesOfMonth;
 

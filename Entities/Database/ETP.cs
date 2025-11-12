@@ -13,5 +13,7 @@ namespace NSAP_ODK.Entities.Database
 
         public string ETP_Name { get; set; }
         public bool DelayedSave { get; set; }
+
+        public VesselUnload Parent { get; set; }
     }
 }

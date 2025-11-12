@@ -30,6 +30,7 @@
                 <TreeViewItem Header="Length list" x:Name="treeItemLenList"/>
                 <TreeViewItem Header="Maturity" x:Name="treeItemMaturity"/>
             </TreeViewItem>
+            <TreeViewItem Header="Gear interaction" x:Name="treeItemGearInteraction"/>
         </TreeView>
 
         <vesselUnloadEditor:VesselUnloadEditor Grid.Row="1" Grid.Column="1" x:Name="unloadEditor" />

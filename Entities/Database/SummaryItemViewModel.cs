@@ -3136,6 +3136,7 @@ namespace NSAP_ODK.Entities.Database
                     DateAdded = (DateTime)vu.DateAddedToDatabase,
                     FormVersion = vu.FormVersion,
                     IsMultiVessel = vu.Parent.Parent.IsMultiVessel,
+                    HasInteractionWithETP = vu.HasInteractionWithETPs,
                 };
                 if (vu.Parent.Parent.LandingSiteID == null && string.IsNullOrEmpty(vu.Parent.Parent.LandingSiteText))
                 {

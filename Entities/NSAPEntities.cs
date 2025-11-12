@@ -148,6 +148,8 @@ namespace NSAP_ODK.Entities
             CarrierBoatLanding_FishingGround_ViewModel.ClearCSV();
             CarrierLandingViewModel.ClearCSV();
             CatcherBoatOperation_ViewModel.ClearCSV();
+            ETPviewModel.ClearCSV();
+            ETPInteractionViewModel.ClearCSV();
         }
 
         /// <summary>

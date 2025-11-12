@@ -127,6 +127,7 @@ namespace NSAP_ODK.Entities.Database
                 {
                     ListUnloadFishingGears.Add(item);
                 }
+                HasETPInteraction = vesselUnload.HasInteractionWithETPs;
                 VesselUnload = vesselUnload;
 
                 //if (!vesselUnload.IsMultiGear)
@@ -285,6 +286,8 @@ namespace NSAP_ODK.Entities.Database
         //[ReadOnly(true)]
         public bool HasCatchComposition { get; set; }
 
+        public bool HasETPInteraction { get; set; }
+
         //ODK Metadata
 
         /// <summary>
@@ -389,6 +392,7 @@ namespace NSAP_ODK.Entities.Database
     }
     public class VesselUnloadTrackedFlattened
     {
+        public bool HasETPInteraction { get; set; }
         public int SamplingDayID { get; set; }
         public string Region { get; set; }
         public string FMA { get; set; }
@@ -466,6 +470,7 @@ namespace NSAP_ODK.Entities.Database
             IsMultigear = vesselUnload.IsMultiGear;
             IsCatchSold = vesselUnload.IsCatchSold;
             IncludeEffortIndicators = vesselUnload.IncludeEffortIndicators;
+            HasInteractionWithETPs = vesselUnload.HasInteractionWithETPs;
             Notes = vesselUnload.Notes;
 
             OperationIsTracked = vesselUnload.OperationIsTracked;
@@ -487,6 +492,7 @@ namespace NSAP_ODK.Entities.Database
             CountGearTypesUsed = vesselUnload.CountGearTypesUsed;
             ODKRowID = vesselUnload.ODKRowID;
             SubmissionID = vesselUnload.SubmissionID;
+
         }
         public bool IncludeEffortIndicators { get; private set; }
         public int? CountGearTypesUsed { get; private set; }
@@ -507,6 +513,7 @@ namespace NSAP_ODK.Entities.Database
         public bool IsBoatUsed { get; private set; }
         public string FishingVessel { get; private set; }
 
+        public bool HasInteractionWithETPs { get; private set; }
         public string SectorCode { get; private set; }
 
         public bool OperationIsSuccessful { get; private set; }
@@ -728,6 +735,8 @@ namespace NSAP_ODK.Entities.Database
             Dispose(true);
             GC.SuppressFinalize(this);
         }
+
+        public VesselUnload_ETP_Interaction VesselUnload_ETP_Interaction { get; set; }
         protected virtual void Dispose(bool disposing)
         {
             if (disposing)
@@ -794,6 +803,10 @@ namespace NSAP_ODK.Entities.Database
         public FishingGroundGridViewModel FishingGroundGridViewModel { get; set; }
 
         public GearSoakViewModel GearSoakViewModel { get; set; }
+
+        public ETPInteractionViewModel ETPInteractionViewModel { get; set; }
+
+        public ETPviewModel ETPviewModel { get; set; }
 
         public VesselEffortViewModel VesselEffortViewModel { get; set; }
         public override string ToString()
@@ -1270,6 +1283,41 @@ namespace NSAP_ODK.Entities.Database
 
         public string VesselText { get; set; }
 
+        public List<ETP> ListVesselUnloadETP
+        {
+            get
+            {
+                List<ETP> vu_etps = new List<ETP>();
+                if (ETPviewModel == null || ETPviewModel.ETP_Collection == null)
+                {
+                    ETPviewModel = new ETPviewModel(this);
+                }
+                foreach (ETP item in ETPviewModel.ETP_Collection)
+                {
+                    vu_etps.Add(item);
+                }
+                return vu_etps;
+
+            }
+        }
+
+        public List<ETP_Interaction> ListVesselUnloadETPInteraction
+        {
+            get
+            {
+                List<ETP_Interaction> vu_etp_inter = new List<ETP_Interaction>();
+                if (ETPInteractionViewModel == null || ETPInteractionViewModel.ETP_InteractionCollection == null)
+                {
+                    ETPInteractionViewModel = new ETPInteractionViewModel(this);
+                }
+                foreach (ETP_Interaction item in ETPInteractionViewModel.ETP_InteractionCollection)
+                {
+                    vu_etp_inter.Add(item);
+                }
+                return vu_etp_inter;
+
+            }
+        }
         public List<VesselUnload_Gear_Spec> ListVesselGearSpec
         {
             get

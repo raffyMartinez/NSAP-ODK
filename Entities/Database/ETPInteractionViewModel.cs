@@ -8,10 +8,60 @@ using System.Collections.Specialized;
 
 namespace NSAP_ODK.Entities.Database
 {
-    public class ETPInteractionViewModel:IDisposable
+    public class ETPInteractionViewModel : IDisposable
     {
         private bool _editSuccess;
 
+        public static int? CurrentIDNumber { get; set; }
+
+        public static void ClearCSV()
+        {
+            _csv.Clear();
+        }
+        public ETPInteractionViewModel(VesselUnload vu, List<string> list_interactions, string otherInteraction = "")
+        {
+            if (CurrentIDNumber == null)
+            {
+                CurrentIDNumber = NextRecordNumber;
+            }
+
+            ETP_Interactions = new ETPInteractionRepository();
+            ETP_InteractionCollection = new ObservableCollection<ETP_Interaction>();
+            ETP_InteractionCollection.CollectionChanged += ETP_InteractionCollection_CollectionChanged;
+            foreach (var item in list_interactions)
+            {
+                ETP_Interaction inter = new ETP_Interaction
+                {
+                    VesselUnloadID = vu.PK,
+                    RowID = (int)++CurrentIDNumber,
+                    Interaction = item,
+                    DelayedSave = true,
+                    Parent = vu,
+                    OtherInteraction = "",
+                };
+
+                if (item == "Other interaction")
+                {
+                    inter.OtherInteraction = otherInteraction;
+                }
+                AddRecordToRepo(inter);
+            }
+        }
+
+        public static string CSV
+        {
+            get
+            {
+                if (Utilities.Global.Settings.UsemySQL)
+                {
+                    return $"{NSAPMysql.MySQLConnect.GetColumnNamesCSV("")}\r\n{_csv}";
+                }
+                else
+                {
+                    return $"{CreateTablesInAccess.GetColumnNamesCSV("dbo_vessel_unload_etp_interaction_type")}\r\n{_csv}";
+                }
+            }
+        }
         public ETPInteractionViewModel(VesselUnload vu)
         {
             ETP_Interactions = new ETPInteractionRepository(vu);
@@ -19,10 +69,19 @@ namespace NSAP_ODK.Entities.Database
             ETP_InteractionCollection.CollectionChanged += ETP_InteractionCollection_CollectionChanged;
         }
 
-        private static bool SetCSV(ETP_Interaction etp)
+        private static bool SetCSV(ETP_Interaction item)
         {
-            bool success = false;
-            return success;
+            Dictionary<string, string> myDict = new Dictionary<string, string>();
+            myDict.Add("row_id", item.RowID.ToString());
+            myDict.Add("v_unload_id", item.Parent.PK.ToString());
+            myDict.Add("etp_interaction", item.Interaction);
+            myDict.Add("other_interaction", item.OtherInteraction);
+
+
+
+            _csv.AppendLine(CreateTablesInAccess.CSVFromObjectDataDictionary(myDict, "dbo_vessel_unload_etp_interaction_type"));
+            //_csv.AppendLine($"{item.PK},{item.Parent.PK},{item.LengthClass},{item.Frequency},\"{item.Sex}\"");
+            return true;
         }
         private void ETP_InteractionCollection_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
@@ -41,8 +100,8 @@ namespace NSAP_ODK.Entities.Database
                         {
                             _editSuccess = ETP_Interactions.Add(newItem);
                         }
-                        int newIndex = e.NewStartingIndex;
-                        _editSuccess = ETP_Interactions.Add(ETP_InteractionCollection[newIndex]);
+                        //int newIndex = e.NewStartingIndex;
+                        //_editSuccess = ETP_Interactions.Add(ETP_InteractionCollection[newIndex]);
                     }
                     break;
 
@@ -125,8 +184,8 @@ namespace NSAP_ODK.Entities.Database
                 }
                 else
                 {
-                    return ETP_Interactions.MaxRecordNumber() + 1;
-                    
+                    return ETPInteractionRepository.MaxRecordNumber() + 1;
+
                 }
             }
         }

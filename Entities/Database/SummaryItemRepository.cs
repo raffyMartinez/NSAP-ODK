@@ -560,6 +560,26 @@ namespace NSAP_ODK.Entities.Database
                         }
                         catch { }
                     }
+
+                    using (var cmd = con.CreateCommand())
+                    {
+                        cmd.CommandText = "Select max(row_id) from dbo_vessel_unload_etp_interaction";
+                        try
+                        {
+                            lpks.LastETPNamePK = (int)cmd.ExecuteScalar();
+                        }
+                        catch { }
+                    }
+
+                    using (var cmd = con.CreateCommand())
+                    {
+                        cmd.CommandText = "Select max(row_id) from dbo_vessel_unload_etp_interaction_type";
+                        try
+                        {
+                            lpks.LastETPInteractionPK = (int)cmd.ExecuteScalar();
+                        }
+                        catch { }
+                    }
                 }
             }
 
@@ -586,6 +606,8 @@ namespace NSAP_ODK.Entities.Database
                 lpks.LastWeightValidationPK = (int)VesselUnloadViewModel.CurrentWeightValidationIDNumber;
                 lpks.LastCarrierSamplingCatcherBoatOperationPK = CatcherBoatOperation_ViewModel.CurrentIDNumber;
                 lpks.LastCarrierSamplingFishingGroundPK = CarrierBoatLanding_FishingGround_ViewModel.CurrentIDNumber;
+                lpks.LastETPNamePK = (int)ETPviewModel.CurrentIDNumber;
+                lpks.LastETPInteractionPK = (int)ETPInteractionViewModel.CurrentIDNumber;
 
                 if (lpks.LastVesselUnloadPK == 0 && NSAPEntities.SummaryItemViewModel.Count > 0)
                 {
@@ -896,6 +918,7 @@ namespace NSAP_ODK.Entities.Database
                                                     vu1.is_multigear,
                                                     vu1.is_catch_sold,
                                                     vu1.count_gear_types,
+                                                    vu1.has_etp_interaction,
                                                     en.EnumeratorID AS enumerator_id,
                                                     vu1.EnumeratorText AS enumerator_text,
                                                     en.EnumeratorName AS enumerator_name,
@@ -1281,6 +1304,8 @@ namespace NSAP_ODK.Entities.Database
                                         {
                                             si.CountFishingGearTypesUsed = 1;
                                         }
+
+                                        si.HasInteractionWithETP = (bool)dr["has_etp_interaction"];
 
                                         if (addtoList)
                                         {

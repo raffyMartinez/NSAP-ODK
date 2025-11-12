@@ -413,6 +413,8 @@ namespace NSAP_ODK.Entities.Database
         public int? GearUnloadID { get; set; }
         public int? VesselUnloadID { get; set; }
 
+        public bool HasInteractionWithETP { get; set; }
+
         private VesselUnload _vesselUnload;
 
         public VesselUnload VesselUnload

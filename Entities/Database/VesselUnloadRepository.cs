@@ -85,7 +85,7 @@ namespace NSAP_ODK.Entities.Database
             }
             return pids;
         }
-        public static List<VesselUnload> GetVesselUnloads(AllSamplingEntitiesEventHandler entities)
+        public static List<VesselUnload> GetVesselUnloads(AllSamplingEntitiesEventHandler entities, bool includeETPInteraction=false)
         {
             List<VesselUnload> unloads = new List<VesselUnload>();
             if (Global.Settings.UsemySQL)
@@ -140,7 +140,8 @@ namespace NSAP_ODK.Entities.Database
                                                 dbo_vessel_unload.catch_samp AS sample_wt_catch,
                                                 dbo_vessel_unload_1.is_catch_sold,
                                                 dbo_vessel_unload_1.count_gear_types,
-                                                dbo_vessel_unload_1.Notes
+                                                dbo_vessel_unload_1.Notes,
+                                                dbo_vessel_unload_1.has_etp_interaction
                                             FROM
                                                  (gear INNER JOIN
                                                  (NSAPEnumerator RIGHT JOIN
@@ -204,7 +205,8 @@ namespace NSAP_ODK.Entities.Database
                                                 dbo_vessel_unload.catch_samp,
                                                 dbo_vessel_unload_1.is_catch_sold,
                                                 dbo_vessel_unload_1.count_gear_types,
-                                                dbo_vessel_unload_1.Notes
+                                                dbo_vessel_unload_1.Notes,
+                                                dbo_vessel_unload_1.has_etp_interaction
                                             HAVING
                                                 dbo_vessel_unload_1.is_multigear=False 
                                             ORDER BY
@@ -248,7 +250,8 @@ namespace NSAP_ODK.Entities.Database
                                                 dbo_vessel_unload.catch_samp AS sample_wt_catch,
                                                 dbo_vessel_unload_1.is_catch_sold,
                                                 dbo_vessel_unload_1.count_gear_types,
-                                                dbo_vessel_unload_1.Notes
+                                                dbo_vessel_unload_1.Notes,
+                                                dbo_vessel_unload_1.has_etp_interaction
                                             FROM
                                                  (nsapRegion INNER JOIN
                                                  ((Provinces INNER JOIN
@@ -314,7 +317,8 @@ namespace NSAP_ODK.Entities.Database
                                                 dbo_vessel_unload.catch_samp,
                                                 dbo_vessel_unload_1.is_catch_sold,
                                                 dbo_vessel_unload_1.count_gear_types,
-                                                dbo_vessel_unload_1.Notes
+                                                dbo_vessel_unload_1.Notes,
+                                                dbo_vessel_unload_1.has_etp_interaction
                                             HAVING
                                                  dbo_vessel_unload_1.is_multigear=True";
 
@@ -343,6 +347,7 @@ namespace NSAP_ODK.Entities.Database
                                     SectorCode = dr["sector_code"].ToString(),
                                     FishingTripIsCompleted = (bool)dr["trip_is_completed"],
                                     FirstFishingGround = $"{dr["grid_utm_zone"].ToString()} - {dr["grid"].ToString()}",
+                                    HasInteractionWithETPs = (bool)dr["has_etp_interaction"]
                                 };
                                 vu.ListUnloadFishingGearsEx = new List<VesselUnload_FishingGear>();
                                 if (dr["grid"] != DBNull.Value && dr["grid_utm_zone"] != DBNull.Value)
@@ -397,6 +402,19 @@ namespace NSAP_ODK.Entities.Database
                                 {
                                     vu.CountGearTypesUsed = (int)dr["count_gear_types"];
                                 }
+                                if(includeETPInteraction)
+                                {
+                                    vu.VesselUnload_ETP_Interaction  = new VesselUnload_ETP_Interaction
+                                    {
+                                        VesselUnloadID = vu.PK,
+                                        VesselUnload = vu,
+                                        HasETPAndGearInteraction = vu.HasInteractionWithETPs,
+                                    };
+                                    if (vu.HasInteractionWithETPs)
+                                    {
+                                        PopulateETPIntercationFields(vu.VesselUnload_ETP_Interaction);
+                                    }
+                                }
                                 unloads.Add(vu);
                             }
 
@@ -411,6 +429,88 @@ namespace NSAP_ODK.Entities.Database
             return unloads;
         }
 
+        private static void PopulateETPIntercationFields(VesselUnload_ETP_Interaction vei)
+        {
+           if(Global.Settings.UsemySQL)
+            {
+
+            }
+           else
+            {
+                using (var con = new OleDbConnection(Global.ConnectionString))
+                {
+                    using (var cmd = con.CreateCommand())
+                    {
+                        cmd.Parameters.AddWithValue("@vu_id", vei.VesselUnloadID);
+                        cmd.CommandText = "Select * from dbo_vessel_unload_etp_interaction where v_unload_id=@vu_id";
+                        con.Open();
+                        try
+                        {
+                            OleDbDataReader dr = cmd.ExecuteReader();
+                            while (dr.Read())
+                            {
+                                switch (dr["etp_name"].ToString())
+                                {
+                                    case "Sharks":
+                                        vei.HasShark = true;
+                                        break;
+                                    case "Rays":
+                                        vei.HasRay = true;
+                                        break;
+                                    case "Sea turtles":
+                                        vei.HasSeaTurtle = true;
+                                        break;
+                                    case "Marine mammals":
+                                        vei.HasMarineMammal = true;
+                                        break;
+                                }
+                            }
+                            dr.Close();
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                    }
+                    using (var cmd = con.CreateCommand())
+                    {
+                        cmd.CommandText = "Select * from dbo_vessel_unload_etp_interaction_type where v_unload_id=@vu_id";
+                        cmd.Parameters.AddWithValue("@vu_id", vei.VesselUnloadID);
+                        try
+                        {
+                            OleDbDataReader dr1 = cmd.ExecuteReader();
+                            while (dr1.Read())
+                            {
+                                switch (dr1["etp_interaction"].ToString())
+                                {
+                                    case "Escape from gear":
+                                        vei.HasETPEscapeFromGear = true;
+                                        break;
+                                    case "Release":
+                                        vei.HasETPReleaseFromGear = true;
+                                        break;
+                                    case "Injury and release":
+                                        vei.HasETPInjuryAndReleaseFromGear = true;
+                                        break;
+                                    case "With mortality":
+                                    case "With Mortality":
+                                        vei.HasETPMortality = true;
+                                        break;
+                                    case "Other interaction":
+                                        vei.HasETPOtherInteraction = true;
+                                        vei.ETPOtherInteraction = dr1["other_interaction"].ToString();
+                                        break;
+                                }
+                            }
+                        }
+                        catch (Exception ex1)
+                        {
+                            Logger.Log(ex1);
+                        }
+                    }
+                }
+            }
+        }
         public static int RefNoFieldSize { get; set; }
         public static bool UpdateTableDefinitionEx(string colName = null, int? colWidth = null, string relationshipToRemove = "")
         {
@@ -1308,7 +1408,8 @@ namespace NSAP_ODK.Entities.Database
                         dbo_vessel_unload_1.EnumeratorText, 
                         dbo_vessel_unload_1.DateAdded, 
                         dbo_vessel_unload_1.sector_code, 
-                        dbo_vessel_unload_1.FromExcelDownload
+                        dbo_vessel_unload_1.FromExcelDownload,
+                        dbo_vessel_unload_1.has_etp_interaction,
                 FROM nsapRegion RIGHT JOIN
                     ((Provinces RIGHT JOIN 
                     Municipalities ON 
@@ -1388,7 +1489,8 @@ namespace NSAP_ODK.Entities.Database
                                 Notes = dr["Notes"].ToString(),
                                 DateAddedToDatabase = dr["DateAdded"] == DBNull.Value ? null : (DateTime?)dr["DateAdded"],
                                 Sector = NSAPEntities.VesselUnloadViewModel.GetSector(dr["sector_code"].ToString()),
-                                FromExcelDownload = (bool)dr["FromExcelDownload"]
+                                FromExcelDownload = (bool)dr["FromExcelDownload"],
+                                HasETPInteraction = (bool)dr["has_etp_interaction"],
                             };
                             thisList.Add(vuf);
                         }
@@ -2360,6 +2462,7 @@ namespace NSAP_ODK.Entities.Database
                                 //item.FishingGroundGridViewModel = new FishingGroundGridViewModel(item);
                                 //item.GearSoakViewModel = new GearSoakViewModel(item);
                                 //item.VesselEffortViewModel = new VesselEffortViewModel(item);
+                                item.HasInteractionWithETPs = (bool)dr["has_etp_interaction"];
                                 thisList.Add(item);
                             }
 
@@ -2811,8 +2914,8 @@ namespace NSAP_ODK.Entities.Database
                                                 user_name,device_id,datetime_submitted,form_version,
                                                 GPS,Notes,EnumeratorID,EnumeratorText,DateAdded,sector_code,FromExcelDownload,HasCatchComposition,
                                                 NumberOfFishers,ref_no,is_catch_sold,is_multigear,count_gear_types,number_species_catch_composition,
-                                                include_effort,submission_id,lss_submisionID)
-                                    Values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+                                                include_effort,submission_id,lss_submisionID,has_etp_interaction)
+                                    Values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 
                                 using (OleDbCommand update1 = new OleDbCommand(sql, conn))
                                 {
@@ -2943,6 +3046,7 @@ namespace NSAP_ODK.Entities.Database
                                         update1.Parameters.Add("@_id", OleDbType.Integer).Value = item.SubmissionID;
                                     }
                                     update1.Parameters.Add("@lss_id", OleDbType.VarWChar).Value = item.LandingSiteSamplingSubmissionID;
+                                    update1.Parameters.Add("@has_etp_interaction", OleDbType.Boolean).Value = item.HasInteractionWithETPs;
                                     try
                                     {
                                         success = update1.ExecuteNonQuery() > 0;
@@ -3762,6 +3866,7 @@ namespace NSAP_ODK.Entities.Database
                                     cmd_1.Parameters.Add("@count_species_catch_comp", OleDbType.Integer).Value = item.NumberOfSpeciesInCatchComposition;
                                 }
                                 cmd_1.Parameters.Add("@include_effort", OleDbType.Boolean).Value = item.IncludeEffortIndicators;
+                                cmd_1.Parameters.Add("@has_interaction_etp", OleDbType.Boolean).Value = item.HasInteractionWithETPs;
                                 cmd_1.Parameters.Add("@lsss_id", OleDbType.VarChar).Value = item.LandingSiteSamplingSubmissionID;
 
                                 if (item.SubmissionID == null)
@@ -3772,6 +3877,7 @@ namespace NSAP_ODK.Entities.Database
                                 {
                                     cmd_1.Parameters.Add("@_id", OleDbType.Integer).Value = item.SubmissionID;
                                 }
+
 
                                 cmd_1.Parameters.Add("@Vessel_unload_id", OleDbType.Integer).Value = item.PK;
 
@@ -3804,6 +3910,7 @@ namespace NSAP_ODK.Entities.Database
                                         count_gear_types = @num_gear_type,
                                         number_species_catch_composition = @count_species_catch_comp,
                                         include_effort_indicators = @include_effort,
+                                        has_etp_interaction= @has_interaction_etp,
                                         lss_submisionID = @lsss_id,
                                         submission_id = @_id
                                         WHERE v_unload_id = @Vessel_unload_id";

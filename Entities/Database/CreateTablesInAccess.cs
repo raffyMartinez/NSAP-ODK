@@ -79,7 +79,7 @@ namespace NSAP_ODK.Entities.Database
                         connection.Open();
                         transaction = connection.BeginTransaction(IsolationLevel.ReadCommitted);
                         cmd.Transaction = transaction;
-                        AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "start importing csv", TotalTableCount = 22 });
+                        AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "start importing csv", TotalTableCount = 24 });
                         _importCSVCount = 0;
 
                         currentTableName = "dbo_LC_FG_sample_day";
@@ -124,6 +124,19 @@ namespace NSAP_ODK.Entities.Database
                         currentTableName = "dbo_vessel_unload_1";
                         File.WriteAllText(csv_file, VesselUnloadViewModel.CSV_1);
                         cmd.CommandText = $@"INSERT INTO dbo_vessel_unload_1 SELECT * FROM [Text;FMT=Delimited;DATABASE={base_dir};HDR=yes].[temp.csv]";
+                        cmd.ExecuteNonQuery();
+                        AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "done imported csv", CurrentTableName = currentTableName, CurrentTableCount = ++_importCSVCount });
+
+                        currentTableName = "dbo_vessel_unload_etp_interaction";
+                        File.WriteAllText(csv_file, ETPviewModel.CSV);
+                        cmd.CommandText = $@"INSERT INTO dbo_vessel_unload_etp_interaction SELECT * FROM [Text;FMT=Delimited;DATABASE={base_dir};HDR=yes].[temp.csv]";
+                        cmd.ExecuteNonQuery();
+                        AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "done imported csv", CurrentTableName = currentTableName, CurrentTableCount = ++_importCSVCount });
+
+
+                        currentTableName = "dbo_vessel_unload_etp_interaction_type";
+                        File.WriteAllText(csv_file, ETPInteractionViewModel.CSV);
+                        cmd.CommandText = $@"INSERT INTO dbo_vessel_unload_etp_interaction_type SELECT * FROM [Text;FMT=Delimited;DATABASE={base_dir};HDR=yes].[temp.csv]";
                         cmd.ExecuteNonQuery();
                         AccessTableEvent?.Invoke(null, new CreateTablesInAccessEventArgs { Intent = "done imported csv", CurrentTableName = currentTableName, CurrentTableCount = ++_importCSVCount });
 
@@ -486,6 +499,7 @@ namespace NSAP_ODK.Entities.Database
                         //columns += $"{item.ColumnName},";
                     }
                     else
+                    
                     {
 
                     }

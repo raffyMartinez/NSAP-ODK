@@ -1272,6 +1272,7 @@ namespace NSAP_ODK.Entities.Database
                 myDict.Add("include_effort_indicators", vu.IncludeEffortIndicators.ToString());
                 myDict.Add("lss_submisionID", vu.LandingSiteSamplingSubmissionID);
                 myDict.Add("submission_id", submission_id);
+                myDict.Add("has_etp_interaction", vu.HasInteractionWithETPs.ToString());
 
                 _csv_1.AppendLine(CreateTablesInAccess.CSVFromObjectDataDictionary(myDict, "dbo_vessel_unload_1"));
 

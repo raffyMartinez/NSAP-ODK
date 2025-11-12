@@ -14,5 +14,7 @@ namespace NSAP_ODK.Entities.Database
         public string Interaction { get; set; }
         public string OtherInteraction { get; set; }
         public bool DelayedSave { get; set; }
+
+        public VesselUnload Parent { get; set; }
     }
 }

@@ -14,6 +14,10 @@ namespace NSAP_ODK.Entities.Database
     {
         public List<ETP_Interaction> ETP_Interactions { get; set; }
 
+        public ETPInteractionRepository()
+        {
+            
+        }
         public ETPInteractionRepository(VesselUnload vu)
         {
             ETP_Interactions = getETP_Interactions(vu);
@@ -28,7 +32,7 @@ namespace NSAP_ODK.Entities.Database
             }
             else
             {
-                using (var con = new OleDbConnection())
+                using (var con = new OleDbConnection(Global.ConnectionString))
                 {
                     using (var cmd = con.CreateCommand())
                     {
@@ -36,18 +40,25 @@ namespace NSAP_ODK.Entities.Database
 
                         cmd.CommandText = @"SELECT * FROM dbo_vessel_unload_etp_interaction_type
                                             WHERE v_unload_id=@vid";
-                        con.Open();
-                        var dr = cmd.ExecuteReader();
-                        while(dr.Read())
+                        try
                         {
-                            ETP_Interaction inter = new ETP_Interaction
+                            con.Open();
+                            var dr = cmd.ExecuteReader();
+                            while (dr.Read())
                             {
-                                VesselUnloadID = (int)dr["v_unload_id"],
-                                RowID = (int)dr["row_id"],
-                                Interaction = dr["etp_interaction"].ToString(),
-                                OtherInteraction=dr["other_interaction"].ToString()
-                            };
-                            thisList.Add(inter);
+                                ETP_Interaction inter = new ETP_Interaction
+                                {
+                                    VesselUnloadID = (int)dr["v_unload_id"],
+                                    RowID = (int)dr["row_id"],
+                                    Interaction = dr["etp_interaction"].ToString(),
+                                    OtherInteraction = dr["other_interaction"].ToString()
+                                };
+                                thisList.Add(inter);
+                            }
+                        }
+                        catch(Exception ex)
+                        {
+                            Logger.Log(ex);
                         }
                     }
                 }
@@ -94,7 +105,7 @@ namespace NSAP_ODK.Entities.Database
             }
             return success;
         }
-        public int MaxRecordNumber()
+        public static int MaxRecordNumber()
         {
             int max_rec_no = 0;
             if (Global.Settings.UsemySQL)

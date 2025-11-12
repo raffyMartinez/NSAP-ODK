@@ -107,6 +107,8 @@ namespace NSAP_ODK.VesselUnloadEditorControl
                 case "treeItemMaturity":
                     catchDataGrid.DataContext = VesselCatch.CatchMaturityViewModel.CatchMaturityCollection;
                     break;
+                case "treeItemGearInteraction":
+                    break;
             }
 
             rowPropertyGrid.Height = new GridLength(0);
@@ -157,7 +159,7 @@ namespace NSAP_ODK.VesselUnloadEditorControl
                 var wtCatchComp = VesselUnload.ListVesselCatch.Sum(t => t.Catch_kg);
                 success = VesselUnloadEdit.WeightOfCatch >= wtCatchComp;
 
-                
+
 
                 if (!success)
                 {
@@ -165,12 +167,12 @@ namespace NSAP_ODK.VesselUnloadEditorControl
                     ResetProperty("WeightOfCatch");
                 }
 
-                if(success)
+                if (success)
                 {
                     var totalWtGearCatch = VesselUnload.VesselUnload_FishingGearsViewModel.VesselUnload_FishingGearsCollection.Sum(t => t.WeightOfCatch);
                     success = VesselUnloadEdit.WeightOfCatch >= totalWtGearCatch;
 
-                    if(!success)
+                    if (!success)
                     {
                         EditorMessage = "Weight of catch must not be less than sum of weight of catch of all gears";
                         ResetProperty("WeightOfCatch");
@@ -417,18 +419,37 @@ namespace NSAP_ODK.VesselUnloadEditorControl
                 case "treeItemLenWeight":
                 case "treeItemLenList":
                 case "treeItemMaturity":
+                case "treeItemGearInteraction":
 
                     rowPropertyGrid.Height = new GridLength(0);
                     rowDataGrid.Height = new GridLength(1, GridUnitType.Star);
-                    if (effortDataGrid.SelectedItems.Count == 1)
+                    if (_unloadView == "treeItemGearInteraction")
                     {
                         effortDataGrid.SetValue(Grid.ColumnSpanProperty, 1);
                         catchDataGrid.Visibility = Visibility.Visible;
 
                         labelEffort.SetValue(Grid.ColumnSpanProperty, 1);
                         labelCatch.Visibility = Visibility.Visible;
+
+
+                        labelEffort.Content = "ETPs interacting with fishing gear";
+                        //labelCatch.Content = "Types of interactions";
+                    }
+                    else
+                    {
+                        if (effortDataGrid.SelectedItems.Count == 1)
+                        {
+                            effortDataGrid.SetValue(Grid.ColumnSpanProperty, 1);
+                            catchDataGrid.Visibility = Visibility.Visible;
+
+                            labelEffort.SetValue(Grid.ColumnSpanProperty, 1);
+                            labelCatch.Visibility = Visibility.Visible;
+                        }
                     }
                     break;
+
+
+
             }
 
             ShowEditButtons();
@@ -561,8 +582,35 @@ namespace NSAP_ODK.VesselUnloadEditorControl
 
                     catchDataGrid.DataContext = VesselCatch?.ListCatchMaturity;
                     break;
+                case "treeItemGearInteraction":
+                    catchDataGrid.Columns.Clear();
+                    effortDataGrid.Columns.Clear();
+
+                    //catchDataGrid.DataContext = _vesselUnload.ListVesselUnloadETP;
+                    //effortDataGrid.DataContext = _vesselUnload.ListVesselUnloadETPInteraction;
+
+                    //catchDataGrid.Columns.Add(new DataGridTextColumn { Header = "ETP", Binding = new Binding("ETP_Name") });
+
+                    //effortDataGrid.Columns.Add(new DataGridTextColumn { Header = "Interaction", Binding = new Binding("Interaction") });
+                    //effortDataGrid.Columns.Add(new DataGridTextColumn { Header = "Other interaction", Binding = new Binding("OtherInteraction") });
+
+
+
+                    catchDataGrid.DataContext = _vesselUnload.ListVesselUnloadETPInteraction;
+                    effortDataGrid.DataContext = _vesselUnload.ListVesselUnloadETP;
+
+                    effortDataGrid.Columns.Add(new DataGridTextColumn { Header = "ETP", Binding = new Binding("ETP_Name") });
+
+                    catchDataGrid.Columns.Add(new DataGridTextColumn { Header = "Interaction", Binding = new Binding("Interaction") });
+                    catchDataGrid.Columns.Add(new DataGridTextColumn { Header = "Other interaction", Binding = new Binding("OtherInteraction") });
+
+                    break;
             }
             labelCatch.Content = $"{GetContextLabel()} {VesselCatch?.CatchName}";
+            if(_unloadView=="treeItemGearInteraction")
+            {
+                labelCatch.Content = "Types of interactions";
+            }
         }
         private Style AlignRightStyle
         {
@@ -624,8 +672,9 @@ namespace NSAP_ODK.VesselUnloadEditorControl
                 propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "IsCatchSold", DisplayName = "Was the catch sold at the landing site", DisplayOrder = 19, Description = "Catch sold by the fisher at the landing site", Category = "Effort" });
                 propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "IsMultigear", DisplayName = "Multiple gears can be documented", DisplayOrder = 20, Description = "The sampling is able to document multiple fishing gears used", Category = "Effort" });
                 propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "CountGearTypesUsed", DisplayName = "Number of gears used", DisplayOrder = 21, Description = "Number of gears used in the sampled landing", Category = "Effort" });
-                propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "IncludeEffortIndicators", DisplayName = "Include effort indicators", DisplayOrder = 22, Description = "INclude fishing effort indicators of the sampled landing", Category = "Effort" });
-                propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Notes", DisplayName = "Notes", DisplayOrder = 23, Description = "Notes", Category = "Effort" });
+                propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "IncludeEffortIndicators", DisplayName = "Include effort indicators", DisplayOrder = 22, Description = "Include fishing effort indicators of the sampled landing", Category = "Effort" });
+                propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "HasInteractionWithETPs", DisplayName = "Has interaction with gear and ETPs", DisplayOrder = 23, Description = "Fishing operation has interaction with gear and ETPs", Category = "Effort" });
+                propertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "Notes", DisplayName = "Notes", DisplayOrder = 24, Description = "Notes", Category = "Effort" });
 
 
                 if (VesselUnloadEdit.IsMultigear)
@@ -871,6 +920,9 @@ namespace NSAP_ODK.VesselUnloadEditorControl
                         _isEffortView = false;
                         SetupDataGridsForDisplay(forCatchGrid: true);
                         break;
+                    case "treeItemGearInteraction":
+                        SetupDataGridsForDisplay();
+                        break;
                 }
 
                 //if(catchDataGrid.Visibility==Visibility.Visible && effortDataGrid.Items.Count>0 && effortDataGrid.Items[0].GetType().Name=="VesselCatch")
@@ -907,7 +959,7 @@ namespace NSAP_ODK.VesselUnloadEditorControl
             bool canAdd = false;
             if (!VesselUnloadEdit.IsMultigear)
             {
-                if ( VesselUnloadEdit.HasCatchComposition == true)
+                if (VesselUnloadEdit.HasCatchComposition == true)
                 {
                     var sum_catch_composition_weight = VesselUnloadEdit.VesselUnload.VesselCatchViewModel.VesselCatchCollection.Sum(t => t.Catch_kg);
                     canAdd = sum_catch_composition_weight < VesselUnloadEdit.VesselUnload.WeightOfCatch;

@@ -486,18 +486,20 @@ namespace NSAP_ODK.Entities.Database
 
                                                         };
 
-                                                        if(vu.HasInteractionWithETPs)
-                                                        {
-                                                            vu.ETPsIntercatedWith = sl.ListETPsEncountered;
-                                                            vu.TypesOfIntercationWithETPs = sl.ListInteractionTypesWithETPs;
-                                                            vu.OtherInteractionTypeWithETPs = sl.OtherTypeOfInteractionWithETPs;
-                                                        }
+
 
                                                         if (gu.VesselUnloadViewModel.AddRecordToRepo(vu))
                                                         {
                                                             VesselUnloadViewModel.CurrentIDNumber = vu.PK;
 
-
+                                                            if (vu.HasInteractionWithETPs)
+                                                            {
+                                                                //vu.ETPsIntercatedWith = sl.ListETPsEncountered;
+                                                                vu.ETPviewModel = new ETPviewModel(vu, sl.ListETPsEncountered);
+                                                                vu.ETPInteractionViewModel = new ETPInteractionViewModel(vu, sl.ListInteractionTypesWithETPs, sl.OtherTypeOfInteractionWithETPs);
+                                                                //vu.TypesOfIntercationWithETPs = sl.ListInteractionTypesWithETPs;
+                                                                //vu.OtherInteractionTypeWithETPs = sl.OtherTypeOfInteractionWithETPs;
+                                                            }
 
                                                             if (sl.FishingGrids?.Count > 0)
                                                             {
@@ -1584,6 +1586,11 @@ namespace NSAP_ODK.Entities.Database
         {
             _pk = NSAPEntities.SummaryItemViewModel.LastPrimaryKeys.LastVesselUnloadPK;
             VesselUnloadViewModel.CurrentIDNumber = _pk;
+
+            ETPviewModel.CurrentIDNumber = NSAPEntities.SummaryItemViewModel.LastPrimaryKeys.LastETPNamePK;
+            
+            ETPInteractionViewModel.CurrentIDNumber = NSAPEntities.SummaryItemViewModel.LastPrimaryKeys.LastETPInteractionPK;
+            
             RowIDSet = true;
         }
         public MultiVessel_Optimized_Root Parent
@@ -1753,7 +1760,7 @@ namespace NSAP_ODK.Entities.Database
                             ls.Add("Injury and release");
                             break;
                         case "mor":
-                            ls.Add("With Mortality");
+                            ls.Add("With mortality");
                             break;
                         case "oin":
                             ls.Add("Other interaction");

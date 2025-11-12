@@ -1,5 +1,6 @@
 ﻿using NPOI.SS.Formula.Functions;
 using NSAP_ODK.Entities.Database;
+using NSAP_ODK.TreeViewModelControl;
 using NSAP_ODK.Utilities;
 using System;
 using System.Collections.Generic;
@@ -21,6 +22,9 @@ namespace NSAP_ODK.Entities.CrossTabBuilder
         public static DataTable SpeciesLengthWeightDataTable { get; private set; }
         public static DataTable SpeciesLengthFreqDataTable { get; private set; }
         public static DataTable SpeciesMaturityDataTable { get; private set; }
+
+        public static DataTable GearETPInteractionDataTable { get; private set; }
+
         private static DataSet _crossTabDataSet;
         public static string ErrorMessage { get; private set; }
         public static bool IsCarrierLandding { get; set; }
@@ -59,6 +63,7 @@ namespace NSAP_ODK.Entities.CrossTabBuilder
                         SpeciesLengthWeightDataTable.TableName = "Length-Weight";
                         SpeciesLengthFreqDataTable.TableName = "Length-frequency";
                         SpeciesMaturityDataTable.TableName = "Maturity";
+                        GearETPInteractionDataTable.TableName = "ETP-Gear interaction";
 
                         _crossTabDataSet.Tables.Add(DailyLandingsDataTable);
                         _crossTabDataSet.Tables.Add(EffortDataTable);
@@ -67,6 +72,7 @@ namespace NSAP_ODK.Entities.CrossTabBuilder
                         _crossTabDataSet.Tables.Add(SpeciesLengthWeightDataTable);
                         _crossTabDataSet.Tables.Add(SpeciesLengthFreqDataTable);
                         _crossTabDataSet.Tables.Add(SpeciesMaturityDataTable);
+                        _crossTabDataSet.Tables.Add(GearETPInteractionDataTable);
 
                         //_crossTabDataSet.Tables.Add(_dailyLandingDataTable);
                         //_crossTabDataSet.Tables.Add(_effortCrostabDataTable);
@@ -345,6 +351,190 @@ namespace NSAP_ODK.Entities.CrossTabBuilder
                 EffortSpeciesDataTable.Rows.Add(row);
             }
         }
+
+        private static void GenerateGearETPInteractionDataTable(AllSamplingEntitiesEventHandler EntitiesOfMonth)
+        {
+            var vus = VesselUnloadRepository.GetVesselUnloads(EntitiesOfMonth, true);
+            GearETPInteractionDataTable = new DataTable();
+            try
+            {
+                DataColumn dc = new DataColumn { ColumnName = "Data ID", DataType = typeof(string) };
+                GearETPInteractionDataTable.Columns.Add(dc);
+
+                dc = new DataColumn { ColumnName = "Year", DataType = typeof(int) };
+                GearETPInteractionDataTable.Columns.Add(dc);
+
+                dc = new DataColumn { ColumnName = "Month" };
+                GearETPInteractionDataTable.Columns.Add(dc);
+
+                dc = new DataColumn { ColumnName = "Date", DataType = typeof(DateTime) };
+                GearETPInteractionDataTable.Columns.Add(dc);
+
+                dc = new DataColumn { ColumnName = "Province" };
+                GearETPInteractionDataTable.Columns.Add(dc);
+
+                dc = new DataColumn { ColumnName = "Municipality" };
+                GearETPInteractionDataTable.Columns.Add(dc);
+
+                dc = new DataColumn { ColumnName = "Region" };
+                GearETPInteractionDataTable.Columns.Add(dc);
+
+                dc = new DataColumn { ColumnName = "FMA" };
+                GearETPInteractionDataTable.Columns.Add(dc);
+
+                dc = new DataColumn { ColumnName = "Fishing ground" };
+                GearETPInteractionDataTable.Columns.Add(dc);
+
+
+                dc = new DataColumn { ColumnName = "Landing site" };
+                GearETPInteractionDataTable.Columns.Add(dc);
+
+                dc = new DataColumn { ColumnName = "Enumerator" };
+                GearETPInteractionDataTable.Columns.Add(dc);
+
+
+                dc = new DataColumn { ColumnName = "Sector" };
+                GearETPInteractionDataTable.Columns.Add(dc);
+
+                dc = new DataColumn { ColumnName = "Grid location" };
+                GearETPInteractionDataTable.Columns.Add(dc);
+
+                dc = new DataColumn { ColumnName = "Longitude", DataType = typeof(double) };
+                GearETPInteractionDataTable.Columns.Add(dc);
+
+                dc = new DataColumn { ColumnName = "Latitude", DataType = typeof(double) };
+                GearETPInteractionDataTable.Columns.Add(dc);
+
+                dc = new DataColumn { ColumnName = "Gear" };
+                GearETPInteractionDataTable.Columns.Add(dc);
+
+                dc = new DataColumn { ColumnName = "Weight of catch of gear" };
+                GearETPInteractionDataTable.Columns.Add(dc);
+
+                dc = new DataColumn { ColumnName = "# species in catch of gear" };
+                GearETPInteractionDataTable.Columns.Add(dc);
+
+                dc = new DataColumn { ColumnName = "Date of set", DataType = typeof(DateTime) };
+                GearETPInteractionDataTable.Columns.Add(dc);
+
+                dc = new DataColumn { ColumnName = "Date of haul", DataType = typeof(DateTime) };
+                GearETPInteractionDataTable.Columns.Add(dc);
+
+                dc = new DataColumn { ColumnName = "Ref #" };
+                GearETPInteractionDataTable.Columns.Add(dc);
+
+                dc = new DataColumn { ColumnName = "Is a fishing boat used", DataType = typeof(bool) };
+                GearETPInteractionDataTable.Columns.Add(dc);
+
+                dc = new DataColumn { ColumnName = "Fishing vessel" };
+                GearETPInteractionDataTable.Columns.Add(dc);
+
+                dc = new DataColumn { ColumnName = "# of fishers", DataType = typeof(int) };
+                GearETPInteractionDataTable.Columns.Add(dc);
+
+                //dc = new DataColumn { ColumnName = "Fishing vessels landed", DataType = typeof(int) };
+                //GearETPInteractionDataTable.Columns.Add(dc);
+
+                //dc = new DataColumn { ColumnName = "Fishing vessels monitored", DataType = typeof(int) };
+                //GearETPInteractionDataTable.Columns.Add(dc);
+
+                dc = new DataColumn { ColumnName = "Total weight of catch", DataType = typeof(double) };
+                GearETPInteractionDataTable.Columns.Add(dc);
+
+                dc = new DataColumn { ColumnName = "Has Gear-ETP interaction", DataType = typeof(bool) };
+                GearETPInteractionDataTable.Columns.Add(dc);
+
+                dc = new DataColumn { ColumnName = "Marine mammals", DataType = typeof(bool) };
+                GearETPInteractionDataTable.Columns.Add(dc);
+
+                dc = new DataColumn { ColumnName = "Sea turtles", DataType = typeof(bool) };
+                GearETPInteractionDataTable.Columns.Add(dc);
+
+                dc = new DataColumn { ColumnName = "Sharks", DataType = typeof(bool) };
+                GearETPInteractionDataTable.Columns.Add(dc);
+
+                dc = new DataColumn { ColumnName = "Rays", DataType = typeof(bool) };
+                GearETPInteractionDataTable.Columns.Add(dc);
+
+                dc = new DataColumn { ColumnName = "Escape from gear", DataType = typeof(bool) };
+                GearETPInteractionDataTable.Columns.Add(dc);
+
+                dc = new DataColumn { ColumnName = "Release", DataType = typeof(bool) };
+                GearETPInteractionDataTable.Columns.Add(dc);
+
+                dc = new DataColumn { ColumnName = "Injury and release", DataType = typeof(bool) };
+                GearETPInteractionDataTable.Columns.Add(dc);
+
+                dc = new DataColumn { ColumnName = "With mortality", DataType = typeof(bool) };
+                GearETPInteractionDataTable.Columns.Add(dc);
+
+                dc = new DataColumn { ColumnName = "Other interaction" };
+                GearETPInteractionDataTable.Columns.Add(dc);
+
+                foreach(var item in vus)
+                {
+                    var row = GearETPInteractionDataTable.NewRow();
+                    var lss = item.Parent.Parent;
+                    row["Data ID"] = item.PK;
+                    row["Year"] = lss.SamplingDate.Year;
+                    row["Month"] = lss.SamplingDate.Month;
+                    row["Date"] = lss.SamplingDate;
+                    row["Province"] = lss.LandingSite.Municipality.Province.ProvinceName;
+                    row["Municipality"] = lss.LandingSite.Municipality.MunicipalityName;
+                    row["Region"] = lss.NSAPRegion.Name;
+                    row["FMA"] = lss.FMA.Name;
+                    row["Fishing ground"] = lss.FishingGround.Name;
+                    row["Landing site"] = lss.LandingSite.LandingSiteName;
+                    row["Enumerator"] = lss.EnumeratorName;
+                    row["Sector"] = item.Sector;
+                    if (item.FirstFishingGround != " - ")
+                    {
+                        row["Grid location"] = item.FirstFishingGround;
+                        row["Longitude"] = item.FirstFishingGroundCoordinate.Longitude;
+                        row["Latitude"] = item.FirstFishingGroundCoordinate.Latitude;
+                    }
+                    row["Gear"] = item.GearUsed;
+                    row["Weight of catch of gear"] = item.WeightOfCatch;
+                    row["# species in catch of gear"] = item.NumberOfSpeciesInCatchComposition;
+                    if (item.GearSettingFirst == null || item.GearHaulingFirst == null)
+                    {
+                        row["Date of set"] = DBNull.Value;
+                        row["Date of haul"] = DBNull.Value;
+                    }
+                    else
+                    {
+                        row["Date of set"] = item.GearSettingFirst;
+                        row["Date of haul"] = item.GearHaulingFirst;
+                    }
+                    row["Ref #"] = item.RefNo;
+                    row["Is a fishing boat used"] = item.IsBoatUsed;
+                    row["Fishing vessel"] = item.VesselName;
+                    row["# of fishers"] = item.NumberOfFishers;
+                    //row["Fishing vessels landed"] = item.FirstFishingGroundCoordinate.Latitude;
+                    //row["Fishing vessels monitored"] = item.FirstFishingGroundCoordinate.Latitude;
+
+                    row["Has Gear-ETP interaction"] = item.HasInteractionWithETPs;
+                    row["Marine mammals"] = item.VesselUnload_ETP_Interaction.HasMarineMammal;
+                    row["Sea turtles"] = item.VesselUnload_ETP_Interaction.HasSeaTurtle;
+                    row["Sharks"] = item.VesselUnload_ETP_Interaction.HasShark;
+                    row["Rays"] = item.VesselUnload_ETP_Interaction.HasRay;
+                    row["Escape from gear"] = item.VesselUnload_ETP_Interaction.HasETPEscapeFromGear;
+                    row["Release"] = item.VesselUnload_ETP_Interaction.HasETPReleaseFromGear;
+                    row["Injury and release"] = item.VesselUnload_ETP_Interaction.HasETPInjuryAndReleaseFromGear;
+                    row["With mortality"] = item.VesselUnload_ETP_Interaction.HasETPMortality;
+                    row["Other interaction"] = item.VesselUnload_ETP_Interaction.ETPOtherInteraction;
+                    GearETPInteractionDataTable.Rows.Add(row);
+
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Logger.Log(ex);
+            }
+        }
+
+
         private static void GenerateDailyLandingsDataTabe()
         {
             DailyLandingsDataTable = new DataTable();
@@ -390,7 +580,7 @@ namespace NSAP_ODK.Entities.CrossTabBuilder
                 CrossTabDatasetEvent?.Invoke(null, new CrossTabReportEventArg { Context = "Created datasets", DataSetsProcessedCount = ++_datatsetProcessedCount });
             }
         }
-        public static bool GenerateDatasets()
+        public static bool GenerateDatasets(AllSamplingEntitiesEventHandler EntitiesOfMonth)
         {
             _datatsetProcessedCount = 0;
             AnnounceDataSetCreated(start: true);
@@ -414,6 +604,9 @@ namespace NSAP_ODK.Entities.CrossTabBuilder
             AnnounceDataSetCreated();
 
             GenerateSpeciesMaturityDataTable();
+            AnnounceDataSetCreated();
+
+            GenerateGearETPInteractionDataTable(EntitiesOfMonth);
             AnnounceDataSetCreated();
 
             AnnounceDataSetCreated(end: true);
@@ -1381,6 +1574,9 @@ namespace NSAP_ODK.Entities.CrossTabBuilder
                 dc = new DataColumn { ColumnName = "Is the catch sold", DataType = typeof(bool) };
                 EffortDataTable.Columns.Add(dc);
 
+                dc = new DataColumn { ColumnName = "ETP-Gear interaction", DataType = typeof(bool) };
+                EffortDataTable.Columns.Add(dc);
+
                 dc = new DataColumn { ColumnName = "Notes", DataType = typeof(string) };
                 EffortDataTable.Columns.Add(dc);
 
@@ -1450,7 +1646,7 @@ namespace NSAP_ODK.Entities.CrossTabBuilder
                     row["Date of haul"] = vu.GearHaulingFirst;
                 }
                 row["Weight of catch of gear"] = vu.ListUnloadFishingGearsEx.Sum(t => t.WeightOfCatch);
-                
+
                 row["Ref #"] = vu.RefNo;
                 row["Has catch composition"] = vu.HasCatchComposition;
                 row["Is a fishing boat used"] = vu.IsBoatUsed;
@@ -1495,6 +1691,7 @@ namespace NSAP_ODK.Entities.CrossTabBuilder
                 }
 
                 row["Is the catch sold"] = vu.IsCatchSold;
+                row["ETP-Gear interaction"] = vu.HasInteractionWithETPs;
                 row["Notes"] = vu.Notes;
                 foreach (var vufg in vu.ListUnloadFishingGearsEx)
                 {
